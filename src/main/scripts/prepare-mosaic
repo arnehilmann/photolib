@@ -1,0 +1,12 @@
+#!/usr/bin/env python
+"""Usage:
+    prepare-mosaic --tiles-dir=DIR
+"""
+import sys
+from docopt import docopt
+from photolib.mosaic import MosaicPreparer
+
+arguments = docopt(__doc__)
+
+mp = MosaicPreparer(tiles_dir=arguments["--tiles-dir"])
+sys.exit(mp.main())

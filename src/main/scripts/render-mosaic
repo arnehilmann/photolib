@@ -1,0 +1,53 @@
+#!/usr/bin/env python
+"""
+Usage:
+    render-mosaic [options] --tiles-dir=DIR --in=FILE TILES_DIRS...
+
+Options:
+    --distance=INT  minimum distance of repeated tile [default: 5]
+    --cheat=INT     percentage of "cheating" [default: 10]
+    --nr-x=INT      width of mosaic in tiles [default: 16]
+    --out=FILE      name of mosaic (if not specified, an appropriate name gets computed)
+"""
+import glob
+import os
+import subprocess
+import sys
+import time
+from docopt import docopt
+
+TILES_SIZE = 240
+
+arguments = docopt(__doc__)
+print arguments
+
+size = subprocess.check_output(["metapixel-imagesize", arguments["--in"]])
+width, height = size.split()
+
+nr_x = arguments["--nr-x"]
+cheat = arguments["--cheat"]
+scale = 1.0 * int(nr_x) * TILES_SIZE / int(width)
+distance = TILES_SIZE * int(arguments["--distance"])
+libs = ["--library=%s" % l
+        for subdir in arguments["TILES_DIRS"]
+        for l in glob.glob(os.path.join(arguments["--tiles-dir"], subdir))]
+
+input = arguments["--in"]
+output = arguments["--out"]
+
+if not output:
+    output = "%s/%s.%s.%s.jpg" % (time.strftime("%Y-%m-%d"), os.path.splitext(os.path.basename(input))[0], nr_x, cheat)
+print output
+
+out_dir = os.path.dirname(output)
+if out_dir and not os.path.exists(out_dir):
+    os.makedirs(out_dir)
+
+cmd = ["metapixel", "--cheat=%s" % cheat, "--scale=%s" % scale,
+        "--width=%s" % TILES_SIZE, "--height=%s" % TILES_SIZE,
+        "--distance=%s" % distance, "--metric=subpixel"]
+cmd.extend(libs)
+cmd.extend(["--metapixel", input, output])
+
+print cmd
+sys.exit(subprocess.call(cmd))
