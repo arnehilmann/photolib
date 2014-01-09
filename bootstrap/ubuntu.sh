@@ -11,6 +11,7 @@ fi
 echo "checking environment"
 virtualenv --version > /dev/null 2>&1 || sudo apt-get install python-virtualenv
 jhead -V > /dev/null 2>&1 || sudo apt-get install jhead
+metapixel --version > /dev/null 2>&1 || sudo apt-get install metapixel
 
 echo "preparing virtualenv in '$VE_DIR'"
 rm -rf $VE_DIR
