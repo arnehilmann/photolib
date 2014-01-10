@@ -7,7 +7,7 @@ import tempfile
 TILE_SIZE = 240
 TABLES_MXT = "tables.mxt"
 
-class MosaicPreparer(object):
+class Preparer(object):
     def __init__(self, tiles_dir):
         self.tiles_dir = tiles_dir
 

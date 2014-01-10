@@ -4,9 +4,9 @@
 """
 import sys
 from docopt import docopt
-from photolib.mosaic import MosaicPreparer
+from photolib.mosaic import Preparer
 
 arguments = docopt(__doc__)
 
-mp = MosaicPreparer(tiles_dir=arguments["--tiles-dir"])
-sys.exit(mp.main())
+preparer = Preparer(tiles_dir=arguments["--tiles-dir"])
+sys.exit(preparer.main())
