@@ -11,10 +11,10 @@ class Counter(object):
     def __init__(self):
         self.counter = {"overall":{}}
 
-    def inc(self, what, additional_name=None):
+    def inc(self, what, additional_name=None, amount=1):
         for name in filter(None, ["overall", additional_name]):
             self.counter.setdefault(name, {})
-            self.counter[name][what] = self.counter[name].get(what, 0) + 1
+            self.counter[name][what] = self.counter[name].get(what, 0) + amount
 
     def get(self, name="overall"):
         return self.counter.get(name, {})
@@ -62,6 +62,9 @@ class PhotoImporter(object):
             self.actual_sourcedir = actual_sourcedir
             logging.info("scanning %s" % actual_sourcedir)
             for dirpath, dirnames, filenames in os.walk(actual_sourcedir):
+                if self.format_dirpath(dirpath) == "2011-04-10":
+                    return
+
                 dirnames.sort()
                 if not filenames:
                     continue
@@ -69,8 +72,8 @@ class PhotoImporter(object):
                 self.counter.reset("dir")
                 self._import_dir(dirpath)
                 end = time.time()
-                for key, value in self.counter.get("dir").iteritems():
-                    logging.info("dir %s: %i %s" % (self.format_dirpath(dirpath), value, key))
+                #for key, value in self.counter.get("dir").iteritems():
+                    #logging.info("dir %s: %i %s" % (self.format_dirpath(dirpath), value, key))
                 logging.info("dir %s: %s elapsed" % (self.format_dirpath(dirpath), self._format_timedelta(end - start)))
 
     def format_dirpath(self, dirpath):
@@ -104,18 +107,23 @@ class PhotoImporter(object):
             number = re.sub("\D*", "", name)
             new_path = os.path.join(self.photos_dir, "%s.%s%s" % (new_filename, number, suffix))
             old2new_pathes[path] = new_path
+        self.counter.inc("files to check", amount=len(old2new_pathes))
         #logging.info("dir %s: %i photos found" % (self.format_dirpath(dirpath), len(old2new_pathes)))
         for old_path in sorted(old2new_pathes.keys()):
             new_path = old2new_pathes[old_path]
             if os.path.exists(new_path):
                 logging.debug("%s: target file %s already exists, leaving untouched" % (old_path, new_path))
                 self.counter.inc("photos already imported, thus skipped", "dir")
-                continue
-            try:
-                self._import_photo(old_path, new_path)
-            except Exception, e:
-                logging.exception(e)
-                self.counter.inc("exceptions while importing", "dir")
+                self.counter.inc("photos xferred")
+            else:
+                try:
+                    self._import_photo(old_path, new_path)
+                    self.counter.inc("photos xferred")
+                except Exception, e:
+                    logging.exception(e)
+                    self.counter.inc("exceptions while importing", "dir")
+            logging.info("%s xferred %s" % (self.format_dirpath(old_path),
+                        "(#%(photos xferred)i / %(files to check)i)" % self.counter.get()))
 
     def _import_photo(self, old_path, new_path):
         logging.debug("file %s: importing as %s" % (old_path, new_path))
