@@ -9,6 +9,7 @@ CACHE_DIR=$OUT_DIR/cache
 GALLERIES_DIR=$OUT_DIR/galleries
 GALLERY_DIR=$GALLERIES_DIR/$NAME
 REVEAL_DIR=$CACHE_DIR/reveal.js
+TITLE_IMAGE=00montage.jpg
 
 echo "generating a html gallery"
 
@@ -21,32 +22,45 @@ if [[ ! -d $REVEAL_DIR ]]; then
     )
 fi
 
-rm -rf $GALLERY_DIR
-mkdir -p $GALLERY_DIR
+rm -rf "$GALLERY_DIR"
+mkdir -p "$GALLERY_DIR"
 
 echo "-- preparing gallery in $GALLERY_DIR"
-mkdir -p $GALLERY_DIR/reveal.js
-cp -r $REVEAL_DIR/js $REVEAL_DIR/css $REVEAL_DIR/lib $GALLERY_DIR/reveal.js
-cp -r gallery/* $GALLERY_DIR
+mkdir -p "$GALLERY_DIR/reveal.js"
+cp -r $REVEAL_DIR/js $REVEAL_DIR/css $REVEAL_DIR/lib "$GALLERY_DIR/reveal.js"
+cp -r gallery/* "$GALLERY_DIR"
 
-echo "-- generating gallery source"
-GALLERY_MD=$GALLERY_DIR/$NAME.md
-rm -f $GALLERY_MD
-exec 3> $GALLERY_MD
+echo "-- converting photos"
+GALLERY_MD="$GALLERY_DIR/$NAME.md"
+rm -f "$GALLERY_MD"
+touch "$GALLERY_MD"
+exec 3> "$GALLERY_MD"
+
 for PHOTO in "$@"; do
-    echo "---- adding $PHOTO"
-    cp "$PHOTO" $GALLERY_DIR
     PHOTO_NAME=$(basename "$PHOTO")
-    echo "# {data-background=\"$PHOTO_NAME\" data-background-size=\"cover\"}" >&3
+    echo "---- converting $PHOTO_NAME"
+    convert "$PHOTO" -resize 800x600\> -unsharp 0x1 -quality 85 "$GALLERY_DIR/$PHOTO_NAME"
+done
+
+echo "-- creating first slide"
+montage -geometry +1+1 -background none "$GALLERY_DIR/*.jpg" "$GALLERY_DIR/$TITLE_IMAGE"
+
+echo "-- adding slides"
+for PHOTO in "$GALLERY_DIR"/*.jpg; do
+    PHOTO_NAME=$(basename "$PHOTO")
+    echo "---- adding $PHOTO_NAME"
+    TITLE=""
+    if [[ "$PHOTO_NAME" = "$TITLE_IMAGE" ]]; then
+        TITLE="$NAME"
+    fi
+    echo "# $TITLE {data-background=\"$PHOTO_NAME\" data-background-size=\"cover\" .whitetext}" >&3
     echo >&3
-    #echo "# {data-background=\"$PHOTO_NAME\" data-background-size=\"contain\"}" >&3
-    #echo >&3
 done
 exec 3>&-
 
 echo "-- rendering html"
-pandoc --slide-level 1 -V transition=linear -V backgroundTransition=fade \
-    -i -s --mathjax -i -t revealjs --template my --data-dir $GALLERY_DIR \
-    --css photolib.css $GALLERY_MD -o $GALLERY_DIR/$NAME.html
+pandoc --slide-level 1 -V transition=linear -V backgroundTransition=slide \
+    -i -s --mathjax -i -t revealjs --template my --data-dir "$GALLERY_DIR" \
+    --css photolib.css "$GALLERY_MD" -o "$GALLERY_DIR/$NAME.html"
 
 echo "done."
