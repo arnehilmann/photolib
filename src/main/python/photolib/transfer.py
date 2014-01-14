@@ -74,7 +74,7 @@ class PhotoImporter(object):
                 end = time.time()
                 #for key, value in self.counter.get("dir").iteritems():
                     #logging.info("dir %s: %i %s" % (self.format_dirpath(dirpath), value, key))
-                logging.info("dir %s: %s elapsed" % (self.format_dirpath(dirpath), self._format_timedelta(end - start)))
+                logging.debug("dir %s: %s elapsed" % (self.format_dirpath(dirpath), self._format_timedelta(end - start)))
 
     def format_dirpath(self, dirpath):
         reduced_dirpath = dirpath.replace(self.actual_sourcedir, "")
@@ -83,7 +83,7 @@ class PhotoImporter(object):
         return reduced_dirpath
 
     def _import_dir(self, dirpath):
-        logging.info("dir %s: scanning..." % self.format_dirpath(dirpath))
+        #logging.info("dir %s: scanning..." % self.format_dirpath(dirpath))
         self.counter.inc("directories scanned")
         create_dates = subprocess.check_output(
             ["/usr/bin/exiftool", "-q", "-p", "res/createdate.fmt", "-m", "-d", "%Y/%Y-%m/%Y-%m-%d/%Y%m%d-%H%M%S", dirpath]
