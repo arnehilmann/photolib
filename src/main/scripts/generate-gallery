@@ -43,7 +43,7 @@ for PHOTO in "$@"; do
 done
 
 echo "-- creating first slide"
-montage -geometry +1+1 -background none "$GALLERY_DIR/*.jpg" "$GALLERY_DIR/$TITLE_IMAGE"
+montage -geometry +4+4 -crop 400x400+0+0 +repage -background none "$GALLERY_DIR/*.jpg" "$GALLERY_DIR/$TITLE_IMAGE"
 
 echo "-- adding slides"
 for PHOTO in "$GALLERY_DIR"/*.jpg; do
@@ -59,7 +59,7 @@ done
 exec 3>&-
 
 echo "-- rendering html"
-pandoc --slide-level 1 -V transition=linear -V backgroundTransition=slide \
+pandoc --slide-level 1 -V transition=linear -V backgroundTransition=fade \
     -i -s --mathjax -i -t revealjs --template my --data-dir "$GALLERY_DIR" \
     --css photolib.css "$GALLERY_MD" -o "$GALLERY_DIR/$NAME.html"
 
