@@ -61,6 +61,6 @@ exec 3>&-
 echo "-- rendering html"
 pandoc --slide-level 1 -V transition=linear -V backgroundTransition=slide \
     -i -s --mathjax -i -t revealjs --template my --data-dir "$GALLERY_DIR" \
-    --css photolib.css "$GALLERY_MD" -o "$GALLERY_DIR/$NAME.html"
+    --css photolib.css "$GALLERY_MD" -o "$GALLERY_DIR/index.html"
 
 echo "done."
