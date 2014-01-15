@@ -4,6 +4,7 @@ body {
   #font-family: serif;
   font-size: 36px;
   color: rgb(48, 48, 96);
+  background-color: black;
 }
 
 .reveal h1 {
@@ -14,12 +15,6 @@ body {
 .reveal h2 {
   font-size: 64px;
   padding-bottom: 1em;
-}
-
-html.first body {
-  background-image: url(res/standalone.svg);
-  background-size: 768px 768px;
-  background-repeat: no-repeat;
 }
 
 .whitetext {
