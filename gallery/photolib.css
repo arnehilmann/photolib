@@ -1,10 +1,11 @@
 body {
   #font-family: "Liberation Sans", "Helvetica", "Arial", sans-serif;
-  font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
+  font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
   #font-family: serif;
   font-size: 36px;
   color: rgb(48, 48, 96);
-  background-color: black;
+  #background-color: black;
+  background-color: radial-gradient(circle farthest-corner at center center, #555A5F 0%, #1C1E20 100%) repeat scroll 0 0 #2B2B2B;
 }
 
 .reveal h1 {
