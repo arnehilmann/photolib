@@ -7,9 +7,11 @@ shift
 OUT_DIR=out
 CACHE_DIR=$OUT_DIR/cache
 GALLERIES_DIR=$OUT_DIR/galleries
-GALLERY_DIR=$GALLERIES_DIR/$NAME
+GALLERY_DIR=$(echo $GALLERIES_DIR/$NAME | sed "s/ /_/g")
+IMAGES_DIR=$GALLERY_DIR/images
 REVEAL_DIR=$CACHE_DIR/reveal.js
-TITLE_IMAGE=00montage.jpg
+TITLE_IMAGE=00montage.png
+PHOTO_SIZE=800x600
 
 echo "generating a html gallery"
 
@@ -24,6 +26,7 @@ fi
 
 rm -rf "$GALLERY_DIR"
 mkdir -p "$GALLERY_DIR"
+mkdir -p "$IMAGES_DIR"
 
 echo "-- preparing gallery in $GALLERY_DIR"
 mkdir -p "$GALLERY_DIR/reveal.js"
@@ -31,29 +34,36 @@ cp -r $REVEAL_DIR/js $REVEAL_DIR/css $REVEAL_DIR/lib "$GALLERY_DIR/reveal.js"
 cp -r gallery/* "$GALLERY_DIR"
 
 echo "-- converting photos"
-GALLERY_MD="$GALLERY_DIR/$NAME.md"
+GALLERY_MD="$GALLERY_DIR/index.md"
 rm -f "$GALLERY_MD"
 touch "$GALLERY_MD"
 exec 3> "$GALLERY_MD"
 
+PHOTOS=""
+PHOTO_NAMES=""
 for PHOTO in "$@"; do
-    PHOTO_NAME=$(basename "$PHOTO")
+    PHOTO_NAME=$(basename "$PHOTO" | sed "s/ /_/g")
     echo "---- converting $PHOTO_NAME"
-    convert "$PHOTO" -resize 800x600\> -unsharp 0x1 -quality 85 "$GALLERY_DIR/$PHOTO_NAME"
+    convert "$PHOTO" -resize $PHOTO_SIZE\> -unsharp 0x1 -quality 80 "$IMAGES_DIR/$PHOTO_NAME"
+    PHOTOS="$PHOTOS $PHOTO"
+    PHOTO_NAMES="$PHOTO_NAMES $PHOTO_NAME"
 done
 
 echo "-- creating first slide"
-montage -geometry +4+4 -resize 100x100^ -crop 100x100+0+0 +repage -background none "$GALLERY_DIR/*.jpg" "$GALLERY_DIR/$TITLE_IMAGE"
+montage -geometry +2+2 -resize 100x100^ -crop 100x100+0+0 +repage \
+    -background transparent \
+    $PHOTOS "$IMAGES_DIR/$TITLE_IMAGE"
+mogrify -modulate 100,70 "$IMAGES_DIR/$TITLE_IMAGE"
+pngquant --ext .png --force "$IMAGES_DIR/$TITLE_IMAGE"
 
 echo "-- adding slides"
-for PHOTO in "$GALLERY_DIR"/*.jpg; do
-    PHOTO_NAME=$(basename "$PHOTO")
+for PHOTO_NAME in $TITLE_IMAGE $PHOTO_NAMES; do
     echo "---- adding $PHOTO_NAME"
     TITLE=""
     if [[ "$PHOTO_NAME" = "$TITLE_IMAGE" ]]; then
         TITLE="$NAME"
     fi
-    echo "# $TITLE {data-background=\"$PHOTO_NAME\" data-background-size=\"contain\" .whitetext}" >&3
+    echo "# $TITLE {data-background=\"images/$PHOTO_NAME\" data-background-size=\"contain\" .whitetext}" >&3
     echo >&3
 done
 exec 3>&-
