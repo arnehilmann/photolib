@@ -86,7 +86,8 @@ class PhotoImporter(object):
         #logging.info("dir %s: scanning..." % self.format_dirpath(dirpath))
         self.counter.inc("directories scanned")
         create_dates = subprocess.check_output(
-            ["/usr/bin/exiftool", "-q", "-p", "res/createdate.fmt", "-m", "-d", "%Y/%Y-%m/%Y-%m-%d/%Y%m%d-%H%M%S", dirpath]
+            #["/usr/bin/exiftool", "-q", "-p", "res/createdate.fmt", "-m", "-d", "%Y/%m/%d/%Y%m%d-%H%M%S", dirpath]
+            ["/usr/bin/exiftool", "-q", "-p", "res/createdate.fmt", "-m", "-d", "%Y/%m/%d/%Y%m%d-%H%M", dirpath]
         )
         old2new_pathes = {}
         for line in create_dates.splitlines():
@@ -104,7 +105,8 @@ class PhotoImporter(object):
             path = os.path.join(dirpath, filename)
             name, suffix = os.path.splitext(filename)
             suffix = suffix.lower()
-            number = re.sub("\D*", "", name)
+            number = re.sub(".*\.", "", name)
+            number = re.sub("\D*", "", number)
             new_path = os.path.join(self.photos_dir, "%s.%s%s" % (new_filename, number, suffix))
             old2new_pathes[path] = new_path
         self.counter.inc("files to check", amount=len(old2new_pathes))
@@ -122,7 +124,7 @@ class PhotoImporter(object):
                 except Exception, e:
                     logging.exception(e)
                     self.counter.inc("exceptions while importing", "dir")
-            logging.info("%s xferred %s" % (self.format_dirpath(old_path),
+            logging.info("%s xferred %s" % (os.path.basename(old_path),
                         "(#%(photos xferred)i / %(files to check)i)" % self.counter.get()))
 
     def _import_photo(self, old_path, new_path):
@@ -134,7 +136,8 @@ class PhotoImporter(object):
             self.counter.inc("subdirs created", "dir")
         tmp_path = "%s.tmp" % new_path
         shutil.copy(old_path, tmp_path)
-        call(["/usr/bin/jhead", "-q", "-ft", "-autorot", tmp_path], logger=logging)
+        #call(["/usr/bin/jhead", "-q", "-ft", "-autorot", tmp_path], logger=logging)
+        call(["/usr/bin/jhead", "-q", "-autorot", tmp_path], logger=logging)
         shutil.move(tmp_path, new_path)
         os.chmod(new_path, 0444)
         self.counter.inc("photos imported successfully", "dir")
