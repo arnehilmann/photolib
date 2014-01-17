@@ -60,14 +60,13 @@ class PhotoImporter(object):
     def _import(self):
         for actual_sourcedir in self.source_dirs:
             self.actual_sourcedir = actual_sourcedir
-            logging.info("scanning %s" % actual_sourcedir)
+            if not self.actual_sourcedir.endswith("/"):
+                self.actual_sourcedir = self.actual_sourcedir + "/"
+            #logging.info("scanning %s" % actual_sourcedir)
             for dirpath, dirnames, filenames in os.walk(actual_sourcedir):
-                if self.format_dirpath(dirpath) == "2011-04-10":
-                    return
-
                 dirnames.sort()
-                if not filenames:
-                    continue
+                #if not filenames:
+                    #continue
                 start = time.time()
                 self.counter.reset("dir")
                 self._import_dir(dirpath)
@@ -83,7 +82,12 @@ class PhotoImporter(object):
         return reduced_dirpath
 
     def _import_dir(self, dirpath):
-        #logging.info("dir %s: scanning..." % self.format_dirpath(dirpath))
+        short_dirpath = os.path.basename(dirpath)
+        if short_dirpath.startswith("."):
+            logging.info("skipping %s" % dirpath)
+            self.counter.inc("directories skipped due to dot-name")
+            return
+        logging.info("scanning %s" % self.format_dirpath(dirpath))
         self.counter.inc("directories scanned")
         create_dates = subprocess.check_output(
             #["/usr/bin/exiftool", "-q", "-p", "res/createdate.fmt", "-m", "-d", "%Y/%m/%d/%Y%m%d-%H%M%S", dirpath]
