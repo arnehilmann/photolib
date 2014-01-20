@@ -77,3 +77,5 @@ generate-gallery <NAME_OF_GALLERY> <PHOTOS...>
 
 - store face data in metadata (with bounding box)
 
+- support [pixelize](http://lashwhip.com/pixelize.html) for mosaic rendering
+
