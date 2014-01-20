@@ -1,3 +1,5 @@
+PHOTO_SUFFICES = ["jpg", "jpeg", "JPG", "JPEG", "png", "PNG", "gif", "GIF"]
+
 import logging.config
 logging.config.dictConfig(
     {
