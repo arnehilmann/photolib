@@ -91,12 +91,12 @@ class PhotoImporter(object):
         while parts:
             for format in ["%Y-%m-%d", "%Y%m%d", "%y%m%d", "%Y"]:
                 try:
-                    dt = datetime.strptime("-".join(parts), format)
+                    return datetime.strptime("-".join(parts), format)
                     break
                 except ValueError:
                     pass
             parts = parts[1:]
-        return dt
+        return None
 
     def handle_file_without_exif_date(self, dirpath, filename):
         logging.info("examining %s due to missing exif information" % os.path.join(dirpath, filename))
@@ -127,6 +127,9 @@ class PhotoImporter(object):
                     self.counter.inc("files without exif date", "dir")
                     new_filename = self.handle_file_without_exif_date(dirpath, filename)
                     if not new_filename:
+                        logging.info("no date info for %s available" % filename)
+                        logging.warn("cannot import %s" % os.path.join(dirpath, filename))
+                        self.counter.inc("files skipped due to missing date", "dir")
                         continue
             except Exception, e:
                 logging.exception(e)
@@ -152,11 +155,13 @@ class PhotoImporter(object):
                 try:
                     self._import_photo(old_path, new_path)
                     self.counter.inc("files xferred")
+                    logging.info("%s xferred %s" % (os.path.basename(old_path),
+                        "(#%(files xferred)i / %(files to check)i)" % self.counter.get()))
                 except Exception, e:
                     logging.exception(e)
                     self.counter.inc("exceptions while importing", "dir")
-            logging.info("%s xferred %s" % (os.path.basename(old_path),
-                        "(#%(files xferred)i / %(files to check)i)" % self.counter.get()))
+                    logging.warn("cannot import %s" % os.path.join(dirpath, filename))
+                    self.counter.inc("files skipped due to missing date", "dir")
 
     def _import_photo(self, old_path, new_path):
         logging.debug("file %s: importing as %s" % (old_path, new_path))
