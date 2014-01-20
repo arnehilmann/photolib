@@ -104,7 +104,8 @@ class PhotoImporter(object):
         if create_date:
             logging.info("guessing create date %s" % datetime.strftime(create_date, "%Y-%m-%d"))
             return datetime.strftime(create_date, FORMAT_NEW_PATH)
-        return "_unknown_/%s" % filename
+        name, suffix = os.path.splitext(filename)
+        return "_unknown_/%s" % name
 
     def _import_dir(self, dirpath):
         short_dirpath = os.path.basename(dirpath)
@@ -141,7 +142,9 @@ class PhotoImporter(object):
             suffix = suffix.lower()
             number = re.sub(".*\.", "", name)
             number = re.sub("\D*", "", number)
-            new_path = os.path.join(self.photos_dir, "%s.%s%s" % (new_filename, number, suffix))
+            if number:
+                number = ".%s" % number
+            new_path = os.path.join(self.photos_dir, "%s%s%s" % (new_filename, number, suffix))
             old2new_pathes[path] = new_path
         self.counter.inc("files to check", amount=len(old2new_pathes))
         #logging.info("dir %s: %i photos found" % (self.format_dirpath(dirpath), len(old2new_pathes)))
