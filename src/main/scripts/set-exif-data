@@ -31,3 +31,4 @@ exiftool -all= \
     $*
 
 
+# exiftool -@ exif2xmp.args FILE
