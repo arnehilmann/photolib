@@ -47,15 +47,33 @@ render-mosaic --in <INPUT_FILE> --tiles-dir <TILES_LIBRARY>
 generate-gallery <NAME_OF_GALLERY> <PHOTOS...>
 ```
 
+
+## Referenced Projects/Applications
+
+- [python](http://www.python.org/)
+
+- [virtualenv](http://www.virtualenv.org/en/latest/)
+
+- [jhead](http://www.sentex.net/~mwandel/jhead/)
+
+- [exiftool](http://www.sno.phy.queensu.ca/~phil/exiftool/)
+
+- [imagemagick](http://www.imagemagick.org/)
+
+- [metapixel](http://www.complang.tuwien.ac.at/schani/metapixel/)
+
+- [pandoc](http://johnmacfarlane.net/pandoc/)
+
+- [reveal.js](http://lab.hakim.se/reveal-js/)
+
+
 ## TODO
 
 - add minimal exif data for photos without exif
 
-- handle non-photos gracefully (movies, etc)
-
 - integrate better with picasa (for face detection)
 
-- integrate better with digikam
+- integrate better with digikam (sync of metadata)
 
-- store face data in xmp format (with bounding box)
+- store face data in metadata (with bounding box)
 
