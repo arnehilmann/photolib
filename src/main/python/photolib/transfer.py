@@ -38,6 +38,9 @@ class PhotoImporter(object):
     def _format_timedelta(self, delta):
         return time.strftime("%H:%M:%S", time.gmtime(delta))
 
+    def _get_exiftool_fmt_file(self):
+        return os.path.join(os.path.dirname(os.path.abspath(__file__)), "res", "createdate.fmt")
+
     def main(self):
         start = time.time()
         logging.info("=" * 80)
@@ -116,7 +119,7 @@ class PhotoImporter(object):
         with open(os.devnull, "w") as devnull:
             create_dates = subprocess.check_output(
                 ["/usr/bin/exiftool",
-                    "-q", "-p", "res/createdate.fmt",
+                    "-q", "-p", self._get_exiftool_fmt_file(),
                     "-m", "-d", FORMAT_NEW_PATH, dirpath],
                 stderr = devnull
             )
@@ -135,8 +138,8 @@ class PhotoImporter(object):
                         self.counter.inc("files skipped due to missing date", "dir")
                         continue
             except Exception, e:
+                logging.warn("'%s': format problem, skipping" % line)
                 logging.exception(e)
-                logging.debug("dir %s: format problem, skipping" % line)
                 self.counter.inc("files with exif format problem", "dir")
                 continue
             path = os.path.join(dirpath, filename)
