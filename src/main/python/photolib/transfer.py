@@ -10,6 +10,7 @@ from photolib.logging_subprocess import call
 from photolib import PHOTO_SUFFICES
 
 FORMAT_NEW_PATH = "%Y/%m/%d/%Y%m%d-%H%M"
+NEW_PATH_DATE_FORMAT = "%Y/%m/%d/%Y%m%d"
 
 class Counter(object):
     def __init__(self):
@@ -40,7 +41,6 @@ class PhotoImporter(object):
     def main(self):
         start = time.time()
         logging.info("=" * 80)
-        logging.info("starting import")
         return_code = 2
         try:
             self._import()
@@ -54,7 +54,8 @@ class PhotoImporter(object):
             return_code = 1
         end = time.time()
         logging.info("-" * 80)
-        for key, value in self.counter.get().iteritems():
+        for key in sorted(self.counter.get().keys()):
+            value = self.counter.get()[key]
             logging.info("%16i %s" % (value, key))
         logging.info("%16s %s" % (self._format_timedelta(end - start), "elapsed"))
         logging.info("photos dir: %s" % self.photos_dir)
@@ -66,18 +67,15 @@ class PhotoImporter(object):
             self.actual_sourcedir = actual_sourcedir
             if not self.actual_sourcedir.endswith("/"):
                 self.actual_sourcedir = self.actual_sourcedir + "/"
-            #logging.info("scanning %s" % actual_sourcedir)
             for dirpath, dirnames, filenames in os.walk(actual_sourcedir):
                 dirnames.sort()
-                #if not filenames:
-                    #continue
+                if not filenames:
+                    continue
                 start = time.time()
                 self.counter.reset("dir")
-                self._import_dir(dirpath)
+                self.import_dir(dirpath, filenames)
                 end = time.time()
-                #for key, value in self.counter.get("dir").iteritems():
-                    #logging.info("dir %s: %i %s" % (self.format_dirpath(dirpath), value, key))
-                logging.debug("dir %s: %s elapsed" % (self.format_dirpath(dirpath), self._format_timedelta(end - start)))
+                logging.debug("%s: %s elapsed" % (self.format_dirpath(dirpath), self._format_timedelta(end - start)))
 
     def format_dirpath(self, dirpath):
         return dirpath
@@ -99,37 +97,41 @@ class PhotoImporter(object):
         return None
 
     def handle_file_without_exif_date(self, dirpath, filename):
-        logging.info("examining %s due to missing exif information" % os.path.join(dirpath, filename))
+        logging.debug("examining %s due to missing exif information" % os.path.join(dirpath, filename))
         create_date = self.guess_create_date(dirpath)
         if create_date:
-            logging.info("guessing create date %s" % datetime.strftime(create_date, "%Y-%m-%d"))
-            return datetime.strftime(create_date, FORMAT_NEW_PATH)
-        name, suffix = os.path.splitext(filename)
-        return "_unknown_/%s" % name
+            return datetime.strftime(create_date, NEW_PATH_DATE_FORMAT)
+        return None
+        #name, suffix = os.path.splitext(filename)
+        #return "_unknown_/%s" % name
 
-    def _import_dir(self, dirpath):
+    def import_dir(self, dirpath, filenames=None):
         short_dirpath = os.path.basename(dirpath)
         if short_dirpath.startswith("."):
-            logging.info("skipping %s" % dirpath)
+            logging.warn("%s: skipping due to dot-name" % dirpath)
             self.counter.inc("directories skipped due to dot-name")
             return
-        logging.info("scanning %s" % self.format_dirpath(dirpath))
+        logging.info("%s: scanning..." % self.format_dirpath(dirpath))
         self.counter.inc("directories scanned")
-        create_dates = subprocess.check_output(
-            #["/usr/bin/exiftool", "-q", "-p", "res/createdate.fmt", "-m", "-d", "%Y/%m/%d/%Y%m%d-%H%M%S", dirpath]
-            ["/usr/bin/exiftool", "-q", "-p", "res/createdate.fmt", "-m", "-d", FORMAT_NEW_PATH, dirpath]
-        )
+        with open(os.devnull, "w") as devnull:
+            create_dates = subprocess.check_output(
+                ["/usr/bin/exiftool",
+                    "-q", "-p", "res/createdate.fmt",
+                    "-m", "-d", FORMAT_NEW_PATH, dirpath],
+                stderr = devnull
+            )
         old2new_pathes = {}
         for line in create_dates.splitlines():
             try:
                 filename, new_filename = line.split("|")
                 if not new_filename:
-                    logging.debug("dir %s: no exif data found, skipping" % line)
+                    logging.debug("%s: no exif date found" % filename)
                     self.counter.inc("files without exif date", "dir")
                     new_filename = self.handle_file_without_exif_date(dirpath, filename)
-                    if not new_filename:
-                        logging.info("no date info for %s available" % filename)
-                        logging.warn("cannot import %s" % os.path.join(dirpath, filename))
+                    if new_filename:
+                        logging.info("%s: guessing create date, resulting path: %s" % (filename, new_filename))
+                    else:
+                        logging.error("%s: no date info available, giving up" % os.path.join(dirpath, filename))
                         self.counter.inc("files skipped due to missing date", "dir")
                         continue
             except Exception, e:
@@ -147,13 +149,19 @@ class PhotoImporter(object):
             new_path = os.path.join(self.photos_dir, "%s%s%s" % (new_filename, number, suffix))
             old2new_pathes[path] = new_path
         self.counter.inc("files to check", amount=len(old2new_pathes))
-        #logging.info("dir %s: %i photos found" % (self.format_dirpath(dirpath), len(old2new_pathes)))
+        logging.info("%s: %i photos found" % (self.format_dirpath(dirpath), len(old2new_pathes)))
+
+        for filename in filenames:
+            filename = os.path.join(dirpath, filename)
+            if filename not in old2new_pathes:
+                logging.warn("%s: not considered a photo/video, thus skipping" % filename)
+
         for old_path in sorted(old2new_pathes.keys()):
             new_path = old2new_pathes[old_path]
             if os.path.exists(new_path):
                 logging.debug("%s: target file %s already exists, leaving untouched" % (old_path, new_path))
-                self.counter.inc("files already imported, thus skipped", "dir")
-                self.counter.inc("files xferred")
+                self.counter.inc("files xferred (already transferred, thus skipped)", "dir")
+                self.counter.inc("files xferred total")
             else:
                 try:
                     self._import_photo(old_path, new_path)
@@ -183,4 +191,3 @@ class PhotoImporter(object):
         else:
             shutil.copy(old_path, new_path)
         os.chmod(new_path, 0444)
-        self.counter.inc("files imported successfully", "dir")
