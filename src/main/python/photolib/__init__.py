@@ -1,5 +1,7 @@
-PHOTO_SUFFICES = ["jpg", "jpeg", "JPG", "JPEG", "png", "PNG", "gif", "GIF"]
+PHOTO_SUFFICES = [".jpg", ".jpeg", ".png", ".gif"]
+IGNORED_SUFFICES = [".ini", ".db", ".info"]
 
+import time
 import logging.config
 logging.config.dictConfig(
     {
@@ -22,7 +24,7 @@ logging.config.dictConfig(
             'file': {
                 'level': 'DEBUG',
                 'class': 'logging.FileHandler',
-                'filename': 'import.log',
+                'filename': time.strftime('import-%Y-%m-%d.log'),
                 'formatter':'complete'
             }
         },
