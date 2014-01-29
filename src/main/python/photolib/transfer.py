@@ -7,10 +7,10 @@ import subprocess
 import time
 
 from photolib.logging_subprocess import call
-from photolib import PHOTO_SUFFICES
+from photolib import PHOTO_SUFFICES, IGNORED_SUFFICES
 
 FORMAT_NEW_PATH = "%Y/%m/%d/%Y%m%d-%H%M"
-NEW_PATH_DATE_FORMAT = "%Y/%m/%d/%Y%m%d"
+NEW_PATH_DATE_FORMAT = "%Y/%m/%d"
 
 class Counter(object):
     def __init__(self):
@@ -81,32 +81,36 @@ class PhotoImporter(object):
                 logging.debug("%s: %s elapsed" % (self.format_dirpath(dirpath), self._format_timedelta(end - start)))
 
     def format_dirpath(self, dirpath):
-        return dirpath
-        #reduced_dirpath = dirpath.replace(self.actual_sourcedir, "")
-        #if not reduced_dirpath:
-            #reduced_dirpath = "."
-        #return reduced_dirpath
+        reduced_dirpath = dirpath.replace(self.actual_sourcedir, "")
+        if not reduced_dirpath:
+            reduced_dirpath = "."
+        return reduced_dirpath
 
-    def guess_create_date(self, dirpath):
+    def guess_create_date_using_path(self, dirpath):
         parts = dirpath.split("/")
         while parts:
             for format in ["%Y-%m-%d", "%Y%m%d", "%y%m%d", "%Y"]:
                 try:
                     return datetime.strptime("-".join(parts), format)
-                    break
                 except ValueError:
                     pass
             parts = parts[1:]
         return None
 
+    def guess_create_date_using_ctime(self, dirpath, filename):
+        return datetime.fromtimestamp(os.path.getctime(os.path.join(dirpath, filename)))
+
     def handle_file_without_exif_date(self, dirpath, filename):
         logging.debug("examining %s due to missing exif information" % os.path.join(dirpath, filename))
-        create_date = self.guess_create_date(dirpath)
+        prefix, suffix = os.path.splitext(filename)
+
+        create_date = self.guess_create_date_using_path(dirpath)
+        if not create_date:
+            create_date = self.guess_create_date_using_ctime(dirpath, filename)
         if create_date:
-            return datetime.strftime(create_date, NEW_PATH_DATE_FORMAT)
+            return os.path.join("__date_guessed__", datetime.strftime(create_date, NEW_PATH_DATE_FORMAT), prefix)
+
         return None
-        #name, suffix = os.path.splitext(filename)
-        #return "_unknown_/%s" % name
 
     def import_dir(self, dirpath, filenames=None):
         short_dirpath = os.path.basename(dirpath)
@@ -129,14 +133,15 @@ class PhotoImporter(object):
                 filename, new_filename = line.split("|")
                 if not new_filename:
                     logging.debug("%s: no exif date found" % filename)
-                    self.counter.inc("files without exif date", "dir")
                     new_filename = self.handle_file_without_exif_date(dirpath, filename)
                     if new_filename:
                         logging.info("%s: guessing create date, resulting path: %s" % (filename, new_filename))
+                        self.counter.inc("files with guessed creation date", "dir")
                     else:
-                        logging.error("%s: no date info available, giving up" % os.path.join(dirpath, filename))
-                        self.counter.inc("files skipped due to missing date", "dir")
-                        continue
+                        filename_prefix, _ = os.path.splitext(filename)
+                        new_filename = os.path.join("__unknown_date__", os.path.basename(dirpath.rstrip("/")), filename_prefix)
+                        logging.warn("%s: no date info available, falling back to %s" % (os.path.join(dirpath, filename), new_filename))
+                        self.counter.inc("files with date unknown", "dir")
             except Exception, e:
                 logging.warn("'%s': format problem, skipping" % line)
                 logging.exception(e)
@@ -145,8 +150,10 @@ class PhotoImporter(object):
             path = os.path.join(dirpath, filename)
             name, suffix = os.path.splitext(filename)
             suffix = suffix.lower()
-            number = re.sub(".*\.", "", name)
-            number = re.sub("\D*", "", number)
+            number = ""
+            if suffix in PHOTO_SUFFICES:
+                number = re.sub(".*\.", "", name)
+                number = re.sub("\D*", "", number)
             if number:
                 number = ".%s" % number
             new_path = os.path.join(self.photos_dir, "%s%s%s" % (new_filename, number, suffix))
@@ -155,9 +162,14 @@ class PhotoImporter(object):
         logging.info("%s: %i photos found" % (self.format_dirpath(dirpath), len(old2new_pathes)))
 
         for filename in filenames:
+            _, suffix = os.path.splitext(filename)
+            if suffix.lower() in IGNORED_SUFFICES:
+                logging.debug("%s: ignored" % filename)
+                self.counter.inc("files skipped due to ignored suffix %s" % suffix)
+                continue
             filename = os.path.join(dirpath, filename)
             if filename not in old2new_pathes:
-                logging.warn("%s: not considered a photo/video, thus skipping" % filename)
+                logging.warn("%s: not considered a photo/video, thus skipping" % self.format_dirpath(filename))
 
         for old_path in sorted(old2new_pathes.keys()):
             new_path = old2new_pathes[old_path]
@@ -168,9 +180,9 @@ class PhotoImporter(object):
             else:
                 try:
                     self._import_photo(old_path, new_path)
-                    self.counter.inc("files xferred")
+                    self.counter.inc("files xferred total")
                     logging.info("%s xferred %s" % (os.path.basename(old_path),
-                        "(#%(files xferred)i / %(files to check)i)" % self.counter.get()))
+                        "(#%(files xferred total)i / %(files to check)i)" % self.counter.get()))
                 except Exception, e:
                     logging.exception(e)
                     self.counter.inc("exceptions while importing", "dir")
@@ -185,12 +197,14 @@ class PhotoImporter(object):
             os.makedirs(new_dir)
             self.counter.inc("subdirs created", "dir")
         name, suffix = os.path.splitext(old_path)
-        if suffix in PHOTO_SUFFICES:
+        if suffix.lower() in PHOTO_SUFFICES:
             tmp_path = "%s.tmp" % new_path
             shutil.copy(old_path, tmp_path)
             #call(["/usr/bin/jhead", "-q", "-ft", "-autorot", tmp_path], logger=logging)
             call(["/usr/bin/jhead", "-q", "-autorot", tmp_path], logger=logging)
             shutil.move(tmp_path, new_path)
+            self.counter.inc("photos with %s xferred" % suffix)
         else:
             shutil.copy(old_path, new_path)
+            self.counter.inc("non-photos with %s xferred" % suffix)
         os.chmod(new_path, 0444)
