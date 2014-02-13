@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Usage: analyze-photos --images-dir=DIRS... --faces-dir=DIR --tiles-dir=DIR [--picasa-contacts-file=XMLFILE]
+Usage: analyze-photos --photos-dir=DIRS... --faces-dir=DIR --tiles-dir=DIR [--picasa-contacts-file=XMLFILE]
 """
 import sys
 from docopt import docopt
@@ -9,7 +9,7 @@ from photolib.analyze import Analyzer
 arguments = docopt(__doc__)
 print arguments
 
-ps = Analyzer(images_dirs=arguments["--images-dir"],
+ps = Analyzer(photos_dirs=arguments["--photos-dir"],
         faces_dir=arguments["--faces-dir"],
         tiles_dir=arguments["--tiles-dir"],
         picasa_contacts_file=arguments["--picasa-contacts-file"])
