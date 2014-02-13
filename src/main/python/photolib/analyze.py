@@ -12,14 +12,14 @@ PICASA_INI = ".picasa.ini"
 
 
 class Analyzer(object):
-    def __init__(self, photos_dir, faces_dir, tiles_dir, picasa_contacts_file=None):
+    def __init__(self, photos_dirs, faces_dir, tiles_dir, picasa_contacts_file=None):
         if not picasa_contacts_file:
             import fnmatch
             picasa_contacts_file = [os.path.join(dirpath, f)
                                     for dirpath, dirnames, files in os.walk(os.path.expanduser("~/.google/picasa/"))
                                     for f in fnmatch.filter(files, 'contacts.xml')][0]
             logging.info("using %s as picasa contacts file" % picasa_contacts_file)
-        self.photos_dir = photos_dir
+        self.photos_dirs = photos_dirs
         self.faces_dir = faces_dir
         self.tiles_dir = tiles_dir
         self.id2person = self.read_picasa_person_info(picasa_contacts_file)
@@ -35,7 +35,7 @@ class Analyzer(object):
         return mapping
 
     def main(self):
-        for images_dir in self.photos_dir:
+        for images_dir in self.photos_dirs:
             logging.info("scanning %s" % images_dir)
             for dirpath, dirnames, filenames in os.walk(images_dir):
                 dirnames.sort()
