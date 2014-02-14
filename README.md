@@ -69,12 +69,16 @@ generate-gallery <NAME_OF_GALLERY> <PHOTOS...>
 
 ## How to install picasa3.9 on ubuntu
 
-** fast-lane, without picasaweb-integration **
+**fast-lane, without picasaweb-integration**
 
 * get and install the last (and old) official picasa version for ubuntu:
 
 ```google
 https://www.google.com/search?q=%22picasa+3.0%22+download
+```
+
+```bash
+sudo dpkg -i Downloads/picasa-3.0*.deb
 ```
 
 * get and copy-over the last official (non-ubuntu) version of picasa
