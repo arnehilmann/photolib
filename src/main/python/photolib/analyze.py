@@ -55,12 +55,21 @@ class Analyzer(object):
                         if name is UNKNOWN:
                             continue
                         basename, suffix = os.path.splitext(source_image)
+
+                        year = None
+                        if re.match("20......-", basename):
+                            year = basename[0:4]
                         source_path = os.path.join(dirpath, source_image)
+                        self.create_tile(name,
+                                source_path,
+                                os.path.join(*filter(None, [self.tiles_dir, "persons", name, year])),
+                                basename)
 
                         face_path = self.create_face_image(name, coords, source_path, os.path.join(self.faces_dir, name), basename, suffix)
-
-                        self.create_tile(name, source_path, os.path.join(self.tiles_dir, "persons", name), basename)
-                        self.create_tile(name, face_path, os.path.join(self.tiles_dir, "faces", name), basename)
+                        self.create_tile(name,
+                                face_path,
+                                os.path.join(*filter(None, [self.tiles_dir, "faces", name, year])),
+                                basename)
 
                 except Exception, e:
                     logging.exception(e)
