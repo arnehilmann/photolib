@@ -74,7 +74,7 @@ generate-gallery <NAME_OF_GALLERY> <PHOTOS...>
 * get and install the last (and old) official picasa version for ubuntu:
 
 ```google
-https://www.google.com/search?q=%22picasa+3.0%22+download
+https://www.google.com/search?q=%22picasa+3.0%22+download+ubuntu
 ```
 
 ```bash
