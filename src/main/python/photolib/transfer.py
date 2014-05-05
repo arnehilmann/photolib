@@ -29,11 +29,15 @@ class Counter(object):
 
 
 class PhotoImporter(object):
-    def __init__(self, source_dirs, photos_dir):
+    def __init__(self, source_dirs, photos_dir, artist=None, exifdata=None):
         self.source_dirs = source_dirs
         self.photos_dir = photos_dir
+        self.exifdata = exifdata if exifdata else []
+        self.artist = artist
         self.actual_sourcedir = None
         self.counter = Counter()
+        if self.artist:
+            self.exifdata.append("-Artist=Camera Owner, %s; Photographer, %s" % (self.artist, self.artist))
 
     def _format_timedelta(self, delta):
         return time.strftime("%H:%M:%S", time.gmtime(delta))
@@ -189,6 +193,10 @@ class PhotoImporter(object):
                     logging.warn("cannot import %s" % os.path.join(dirpath, filename))
                     self.counter.inc("files skipped due to missing date", "dir")
 
+    def _add_exif_data(self, path):
+        if self.exifdata:
+            call(["/usr/bin/exiftool"] + self.exifdata + [path], logger=logging)
+
     def _import_photo(self, old_path, new_path):
         logging.debug("file %s: importing as %s" % (old_path, new_path))
         new_dir = os.path.dirname(new_path)
@@ -200,8 +208,10 @@ class PhotoImporter(object):
         if suffix.lower() in PHOTO_SUFFICES:
             tmp_path = "%s.tmp" % new_path
             shutil.copy(old_path, tmp_path)
-            #call(["/usr/bin/jhead", "-q", "-ft", "-autorot", tmp_path], logger=logging)
             call(["/usr/bin/jhead", "-q", "-autorot", tmp_path], logger=logging)
+
+            self._add_exif_data(tmp_path)
+
             shutil.move(tmp_path, new_path)
             self.counter.inc("photos with %s xferred" % suffix)
         else:
