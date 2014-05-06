@@ -34,10 +34,11 @@ class PhotoImporter(object):
         self.photos_dir = photos_dir
         self.exifdata = exifdata if exifdata else []
         self.artist = artist
+        self.number_prefix = re.sub("[^a-zA-Z]*", "", self.artist) if self.artist else None
         self.actual_sourcedir = None
         self.counter = Counter()
         if self.artist:
-            self.exifdata.append("-Artist=Camera Owner, %s; Photographer, %s" % (self.artist, self.artist))
+            self.exifdata.append("-Artist=%s" % self.artist)
 
     def _format_timedelta(self, delta):
         return time.strftime("%H:%M:%S", time.gmtime(delta))
@@ -157,7 +158,10 @@ class PhotoImporter(object):
             number = ""
             if suffix in PHOTO_SUFFICES:
                 number = re.sub(".*\.", "", name)
-                number = re.sub("\D*", "", number)
+                number = re.sub(".*_", "", number)
+                #number = re.sub("\D*", "", number)
+            if self.number_prefix:
+                number = "%s-%s" % (self.number_prefix, number)
             if number:
                 number = ".%s" % number
             new_path = os.path.join(self.photos_dir, "%s%s%s" % (new_filename, number, suffix))
