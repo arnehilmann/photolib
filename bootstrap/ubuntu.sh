@@ -14,12 +14,13 @@ jhead -V > /dev/null 2>&1 || sudo apt-get install jhead
 metapixel --version > /dev/null 2>&1 || sudo apt-get install metapixel
 pandoc -v > /dev/null 2>&1 || sudo apt-get install pandoc
 exiftool -ver > /dev/null 2>&1 || sudo apt-get install libimage-exiftool-perl
+pngquant --help > /dev/null 2>&1 || sudo apt-get install pngquant
 
 echo "preparing virtualenv in '$VE_DIR'"
 rm -rf $VE_DIR
 virtualenv $VE_DIR
 . $VE_DIR/bin/activate
-pip install pybuilder Wand docopt
+pip install docopt
 ln -sf $PWD/src/main/scripts/* $PWD/$VE_DIR/bin
 ln -sf $PWD/src/main/python/* $PWD/$VE_DIR/lib/python*/site-packages
 
