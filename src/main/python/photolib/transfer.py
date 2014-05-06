@@ -195,7 +195,7 @@ class PhotoImporter(object):
 
     def _add_exif_data(self, path):
         if self.exifdata:
-            call(["/usr/bin/exiftool"] + self.exifdata + [path], logger=logging)
+            call(["/usr/bin/exiftool"] + self.exifdata + ["-overwrite_original_in_place", path], logger=logging)
 
     def _import_photo(self, old_path, new_path):
         logging.debug("file %s: importing as %s" % (old_path, new_path))
