@@ -12,8 +12,8 @@ exiftool -all= \
     -EXIF:SceneType \
     -EXIF:Make \
     -EXIF:Model \
-    -EXIF:Artist="Lars Tiede" \
-    -EXIF:Copyright="Lars Tiede" \
+    -EXIF:Artist="Arne Hilmann" \
+    -EXIF:Copyright="Arne Hilmann" \
     -EXIF:ModifyDate \
     -EXIF:ExposureTime \
     -EXIF:FNumber \
