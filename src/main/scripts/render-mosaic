@@ -31,7 +31,7 @@ arguments = docopt(__doc__)
 nr_xs = arguments["--nr-x"]
 cheats = arguments["--cheat"]
 distance = TILES_SIZE * int(arguments["--distance"])
-libs = ['--library="%s"' % root
+libs = ['--library=%s' % root
         for tiles_dir in arguments["TILES_DIRS"]
         for root, dirs, files in os.walk(os.path.join(arguments["--tiles-dir"], tiles_dir))
         if "tables.mxt" in files]
