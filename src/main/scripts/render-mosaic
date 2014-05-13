@@ -6,15 +6,17 @@ Usage:
                     [--cheat=INT]...
                     [--nr-x=INT]...
                     [--outdir=DIR]
-                    --tiles-dir=DIR TILES_DIRS...
+                    [--tiles-dir=DIR]
+                    TILES_DIRS...
 
 Options:
-    --distance=INT  minimum distance of repeated tile [default: 5]
-    --cheat=INT...  percentage of "cheating" [default: 10]
-    --nr-x=INT...   width of mosaic in tiles [default: 10]
-    --outdir=DIR    where to store the mosaics [default: .]
+    --distance=INT      minimum distance of repeated tile [default: 5]
+    --cheat=INT...      percentage of "cheating" [default: 10]
+    --nr-x=INT...       width of mosaic in tiles [default: 10]
+    --outdir=DIR        where to store the mosaics [default: .]
+    --tiles-dir=DIR     where to find the tiles [default: .]
 """
-import glob
+#import glob
 import logging
 import os
 import subprocess
@@ -25,14 +27,15 @@ from docopt import docopt
 TILES_SIZE = 240
 
 arguments = docopt(__doc__)
-print arguments
 
 nr_xs = arguments["--nr-x"]
 cheats = arguments["--cheat"]
 distance = TILES_SIZE * int(arguments["--distance"])
-libs = ["--library=%s" % l
-        for subdir in arguments["TILES_DIRS"]
-        for l in glob.glob(os.path.join(arguments["--tiles-dir"], subdir))]
+libs = ['--library="%s"' % root
+        for tiles_dir in arguments["TILES_DIRS"]
+        for root, dirs, files in os.walk(os.path.join(arguments["--tiles-dir"], tiles_dir))
+        if "tables.mxt" in files]
+
 outdir = arguments["--outdir"]
 
 processes = []
