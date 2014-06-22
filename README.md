@@ -44,7 +44,8 @@ prepare-mosaic --tiles-dir <TILES_LIBRARY>
 
 render-mosaic --in <INPUT_FILE> --tiles-dir <TILES_LIBRARY>
 
-generate-gallery <NAME_OF_GALLERY> <PHOTOS...>
+# deprecated: generate-gallery <NAME_OF_GALLERY> <PHOTOS...>
+# consider using https://github.com/arnehilmann/gallery-generator instead
 ```
 
 
@@ -61,10 +62,6 @@ generate-gallery <NAME_OF_GALLERY> <PHOTOS...>
 - [imagemagick](http://www.imagemagick.org/)
 
 - [metapixel](http://www.complang.tuwien.ac.at/schani/metapixel/)
-
-- [pandoc](http://johnmacfarlane.net/pandoc/)
-
-- [reveal.js](http://lab.hakim.se/reveal-js/)
 
 
 ## How to install picasa3.9 on ubuntu
@@ -95,13 +92,14 @@ sudo cp -r .wine/drive_c/Program\ Files\ \(x86\)/Google/Picasa3/* /opt/google/pi
 
 ## TODO
 
-- add minimal exif data for photos without exif
+- make analyze-photos idempotent
+ 
+  - check if analysis results already present and uptodate
 
-- integrate better with picasa (for face detection)
+  - let analyze-photos remove photos when face information changed
+
+- add minimal exif data for photos without exif
 
 - integrate better with digikam (sync of metadata)
 
-- store face data in metadata (with bounding box)
-
-- support [pixelize](http://lashwhip.com/pixelize.html) for mosaic rendering
-
+- store face data in metadata with bounding box
