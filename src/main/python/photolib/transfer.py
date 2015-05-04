@@ -57,7 +57,7 @@ class PhotoImporter(object):
         except KeyboardInterrupt:
             logging.warning("import aborted by user interaction")
             return_code = 127
-        except Exception, e:
+        except Exception as e:
             logging.exception(e)
             logging.critical("aborting due to previous errors")
             return_code = 1
@@ -150,7 +150,7 @@ class PhotoImporter(object):
                         logging.warn("%s: no date info available, falling back to %s" % (
                                      os.path.join(dirpath, filename), new_filename))
                         self.counter.inc("files with date unknown", "dir")
-            except Exception, e:
+            except Exception as e:
                 logging.warn("'%s': format problem, skipping" % line)
                 logging.exception(e)
                 self.counter.inc("files with exif format problem", "dir")
@@ -194,7 +194,7 @@ class PhotoImporter(object):
                     self.counter.inc("files xferred total")
                     logging.info("%s xferred %s" % (os.path.basename(old_path),
                                  "(#%(files xferred total)i / %(files to check)i)" % self.counter.get()))
-                except Exception, e:
+                except Exception as e:
                     logging.exception(e)
                     self.counter.inc("exceptions while importing", "dir")
                     logging.warn("cannot import %s" % os.path.join(dirpath, filename))
@@ -224,4 +224,4 @@ class PhotoImporter(object):
         else:
             shutil.copy(old_path, new_path)
             self.counter.inc("non-photos with %s xferred" % suffix)
-        os.chmod(new_path, 0444)
+        os.chmod(new_path, 0O444)
