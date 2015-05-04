@@ -12,9 +12,10 @@ from photolib import PHOTO_SUFFICES, IGNORED_SUFFICES
 FORMAT_NEW_PATH = "%Y/%m/%d/%Y%m%d-%H%M"
 NEW_PATH_DATE_FORMAT = "%Y/%m/%d"
 
+
 class Counter(object):
     def __init__(self):
-        self.counter = {"overall":{}}
+        self.counter = {"overall": {}}
 
     def inc(self, what, additional_name=None, amount=1):
         for name in filter(None, ["overall", additional_name]):
@@ -130,7 +131,7 @@ class PhotoImporter(object):
                 ["/usr/bin/exiftool",
                     "-q", "-p", self._get_exiftool_fmt_file(),
                     "-m", "-d", FORMAT_NEW_PATH, dirpath],
-                stderr = devnull
+                stderr=devnull
             )
         old2new_pathes = {}
         for line in create_dates.splitlines():
@@ -144,8 +145,10 @@ class PhotoImporter(object):
                         self.counter.inc("files with guessed creation date", "dir")
                     else:
                         filename_prefix, _ = os.path.splitext(filename)
-                        new_filename = os.path.join("__unknown_date__", os.path.basename(dirpath.rstrip("/")), filename_prefix)
-                        logging.warn("%s: no date info available, falling back to %s" % (os.path.join(dirpath, filename), new_filename))
+                        new_filename = os.path.join("__unknown_date__",
+                                                    os.path.basename(dirpath.rstrip("/")), filename_prefix)
+                        logging.warn("%s: no date info available, falling back to %s" % (
+                                     os.path.join(dirpath, filename), new_filename))
                         self.counter.inc("files with date unknown", "dir")
             except Exception, e:
                 logging.warn("'%s': format problem, skipping" % line)
@@ -159,7 +162,7 @@ class PhotoImporter(object):
             if suffix in PHOTO_SUFFICES:
                 number = re.sub(".*\.", "", name)
                 number = re.sub(".*_", "", number)
-                #number = re.sub("\D*", "", number)
+                # number = re.sub("\D*", "", number)
             if self.number_prefix:
                 number = "%s-%s" % (self.number_prefix, number)
             if number:
@@ -190,7 +193,7 @@ class PhotoImporter(object):
                     self._import_photo(old_path, new_path)
                     self.counter.inc("files xferred total")
                     logging.info("%s xferred %s" % (os.path.basename(old_path),
-                        "(#%(files xferred total)i / %(files to check)i)" % self.counter.get()))
+                                 "(#%(files xferred total)i / %(files to check)i)" % self.counter.get()))
                 except Exception, e:
                     logging.exception(e)
                     self.counter.inc("exceptions while importing", "dir")
