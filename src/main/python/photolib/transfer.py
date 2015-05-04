@@ -9,8 +9,8 @@ import time
 from photolib.logging_subprocess import call
 from photolib import PHOTO_SUFFICES, IGNORED_SUFFICES
 
-FORMAT_NEW_PATH = "%Y/%m/%d/%Y%m%d-%H%M"
-NEW_PATH_DATE_FORMAT = "%Y/%m/%d"
+FORMAT_NEW_PATH = "%Y/%Y-%m/%Y-%m-%d/%Y-%m-%dT%H:%M"
+NEW_PATH_DATE_FORMAT = "%Y/%Y-%m/%Y-%m-%d"
 
 
 class Counter(object):
