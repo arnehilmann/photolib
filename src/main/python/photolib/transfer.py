@@ -128,7 +128,7 @@ class PhotoImporter(object):
         self.counter.inc("directories scanned")
         with open(os.devnull, "w") as devnull:
             create_dates = subprocess.check_output(
-                ["/usr/bin/exiftool",
+                ["exiftool",
                     "-q", "-p", self._get_exiftool_fmt_file(),
                     "-m", "-d", FORMAT_NEW_PATH, dirpath],
                 stderr=devnull
