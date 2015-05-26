@@ -1,4 +1,4 @@
-PHOTO_SUFFICES = [".jpg", ".jpeg", ".png", ".gif"]
+PHOTO_SUFFICES = [".jpg", ".jpeg", ".png", ".gif", ".cr2"]
 IGNORED_SUFFICES = [".ini", ".db", ".info"]
 
 import time
