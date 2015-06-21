@@ -213,13 +213,18 @@ class PhotoImporter(object):
             self.counter.inc("subdirs created", "dir")
         name, suffix = os.path.splitext(old_path)
         if suffix.lower() in PHOTO_SUFFICES:
-            tmp_path = "%s.tmp" % new_path
-            shutil.copy(old_path, tmp_path)
-            call(["/usr/bin/jhead", "-q", "-autorot", tmp_path], logger=logging)
+            if suffix.lower() in ("jpg", "jpeg"):
+                tmp_path = "%s.tmp" % new_path
+                shutil.copy(old_path, tmp_path)
+                call(["/usr/bin/jhead", "-q", "-autorot", tmp_path], logger=logging)
 
-            self._add_exif_data(tmp_path)
+                self._add_exif_data(tmp_path)
 
-            shutil.move(tmp_path, new_path)
+                shutil.move(tmp_path, new_path)
+            else:
+                shutil.copy(old_path, new_path)
+                self._add_exif_data(new_path)
+
             self.counter.inc("photos with %s xferred" % suffix)
         else:
             shutil.copy(old_path, new_path)
