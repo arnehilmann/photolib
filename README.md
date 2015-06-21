@@ -12,8 +12,6 @@ manage your photo archive
 
 - render mosaic using [metapixel](http://www.complang.tuwien.ac.at/schani/metapixel/)
 
-- generate html gallery of given photos, using [pandoc](http://johnmacfarlane.net/pandoc/) and [reveal.js](http://lab.hakim.se/reveal-js/)
-
 
 ## tl;dr
 
