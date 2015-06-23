@@ -25,7 +25,7 @@ class Counter(object):
     def get(self, name="overall"):
         return self.counter.get(name, {})
 
-    def reset(self, name):
+    def reset(self, name="overall"):
         self.counter[name] = {}
 
 
