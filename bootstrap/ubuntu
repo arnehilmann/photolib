@@ -4,7 +4,7 @@ VE_DIR=ve
 
 echo "checking install path"
 if [[ ! -d bootstrap ]]; then
-    echo "must be called in project dir, as 'bootstrap/ubuntu.sh'!"
+    echo "must be called in project dir, as 'bootstrap/ubuntu'!"
     exit 2
 fi
 
@@ -20,7 +20,10 @@ echo "preparing virtualenv in '$VE_DIR'"
 rm -rf $VE_DIR
 virtualenv $VE_DIR
 . $VE_DIR/bin/activate
-pip install docopt
+
+pip install pybuilder
+pyb install_dependencies
+
 ln -sf $PWD/src/main/scripts/* $PWD/$VE_DIR/bin
 ln -sf $PWD/src/main/python/* $PWD/$VE_DIR/lib/python*/site-packages
 
