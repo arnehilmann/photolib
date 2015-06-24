@@ -6,10 +6,6 @@ import photolib.mosaic as mosaic
 
 class MosaicTest(unittest.TestCase):
 
-    def test_match_photos(self):
-        self.assertTrue(mosaic.match_any_photo_formats("foo.png"))
-        self.assertFalse(mosaic.match_any_photo_formats("bar.txt"))
-
     def test_preparer(self):
         p = mosaic.Preparer("src/resources/tiles")
 
