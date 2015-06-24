@@ -3,6 +3,7 @@ from mock import MagicMock
 
 import os
 from datetime import datetime
+import logging
 
 import photolib
 from photolib.transfer import PhotoImporter
@@ -43,6 +44,7 @@ class PhotoImporterTest(unittest.TestCase):
         photolib.transfer.__file__ = orig_file
 
     def test_main(self):
+        logging.disable(logging.WARN)
         self.pi.main()
 
 
