@@ -10,12 +10,9 @@ from docopt import docopt
 
 from photolib.transfer import PhotoImporter
 
-
 arguments = docopt(__doc__)
-pi = PhotoImporter(
-        source_dirs=arguments["--source-dir"],
-        photos_dir=arguments["--photos-dir"],
-        artist=arguments["--artist"],
-        exifdata=arguments["--exifdata"]
-)
+pi = PhotoImporter(source_dirs=arguments["--source-dir"],
+                   photos_dir=arguments["--photos-dir"],
+                   artist=arguments["--artist"],
+                   exifdata=arguments["--exifdata"])
 sys.exit(pi.main())
