@@ -12,17 +12,20 @@ PICASA_INI = ".picasa.ini"
 class PicasaDb(object):
     def __init__(self, photos_dirs, picasa_contacts_file=None):
         if not picasa_contacts_file:
-            import fnmatch
             try:
-                picasa_contacts_file = [os.path.join(dirpath, f)
-                                        for dirpath, dirnames, files in os.walk(os.path.expanduser("~/.google/picasa/"))
-                                        for f in fnmatch.filter(files, 'contacts.xml')][0]
+                picasa_contacts_file = self._find_contacts_file()
             except IndexError:
                 raise Exception("cannot find 'contacts.xml' file under default dir '~/.google/picasa'")
             logging.info("using %s as picasa contacts file" % picasa_contacts_file)
         self.photos_dirs = photos_dirs
         self.id2person = self.read_picasa_person_info(picasa_contacts_file)
         self.database = {}
+
+    def _find_contacts_file(self):
+        import fnmatch
+        return [os.path.join(dirpath, f)
+                for dirpath, dirnames, files in os.walk(os.path.expanduser("~/.google/picasa/"))
+                for f in fnmatch.filter(files, 'contacts.xml')][0]
 
     def read_picasa_person_info(self, filename):
         xmldoc = minidom.parse(filename)
