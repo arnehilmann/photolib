@@ -1,4 +1,5 @@
 import ConfigParser
+import json
 import logging
 import os
 import re
@@ -7,6 +8,7 @@ import subprocess
 from wand.image import Image
 
 from photolib.picasadb import (PicasaDb, UNKNOWN, PICASA_INI)
+from photolib import match_any_tiles_suffices
 
 
 class Analyzer(object):
@@ -31,38 +33,44 @@ class Analyzer(object):
         config = ConfigParser.ConfigParser()
         config.read(os.path.join(dirpath, PICASA_INI))
         for source_image in config.sections():
-            if config.has_option(source_image, "faces"):
-                logging.info("%s: analyzing" % source_image)
-                try:
-                    for id, coords in self.picasadb.analyze_faces_string(config.get(source_image, "faces")):
-                        name = self.id2person.get(id, UNKNOWN)
-                        if name is UNKNOWN:
-                            continue
-                        basename, suffix = os.path.splitext(source_image)
+            logging.info("%s: analyzing" % source_image)
+            if not match_any_tiles_suffices(source_image):
+                continue
+            if not config.has_option(source_image, "faces"):
+                continue
+            logging.info("%s: face found" % source_image)
+            try:
+                for id, coords in self.picasadb.analyze_faces_string(config.get(source_image, "faces")):
+                    name = self.picasadb.id2person.get(id, UNKNOWN)
+                    if name is UNKNOWN:
+                        continue
+                    self.derive_images(dirpath, source_image, name, coords)
+            except Exception, e:
+                logging.exception(e)
+                continue
 
-                        year = None
-                        if re.match("20......-", basename):
-                            year = basename[0:4]
-                        source_path = os.path.join(dirpath, source_image)
-                        self.create_tile(name,
-                                         source_path,
-                                         os.path.join(*filter(None, [self.tiles_dir, "persons", name, year])),
-                                         basename)
+    def derive_images(self, dirpath, source_image, name, coords):
+        basename, suffix = os.path.splitext(source_image)
 
-                        face_path = self.create_face_image(name,
-                                                           coords,
-                                                           source_path,
-                                                           os.path.join(self.faces_dir, name),
-                                                           basename,
-                                                           suffix)
-                        self.create_tile(name,
-                                         face_path,
-                                         os.path.join(*filter(None, [self.tiles_dir, "faces", name, year])),
-                                         basename)
+        year = None
+        if re.match("20......-", basename):
+            year = basename[0:4]
+        source_path = os.path.join(dirpath, source_image)
+        self.create_tile(name,
+                         source_path,
+                         os.path.join(*filter(None, [self.tiles_dir, "persons", name, year])),
+                         basename)
 
-                except Exception, e:
-                    logging.exception(e)
-                    continue
+        face_path = self.create_face_image(name,
+                                           coords,
+                                           source_path,
+                                           os.path.join(self.faces_dir, name),
+                                           basename,
+                                           suffix)
+        self.create_tile(name,
+                         face_path,
+                         os.path.join(*filter(None, [self.tiles_dir, "faces", name, year])),
+                         basename)
 
     def create_tile(self, name, filepath, target_dir, basename):
         suffix = ".png"
@@ -103,3 +111,33 @@ class Analyzer(object):
         exit_code = subprocess.check_call(["convert", filepath, "-crop", crop_string, "+repage", filename])
         logging.debug("exit code: %i" % exit_code)
         return filename
+
+
+class NewAnalyzer(object):
+    def __init__(self, photos_dirs, faces_dir, tiles_dir):
+        self.photos_dirs = [photos_dirs]
+        self.faces_dir = faces_dir
+        self.tiles_dir = tiles_dir
+
+    def main(self):
+        for images_dir in self.photos_dirs:
+            logging.info("scanning %s" % images_dir)
+            for dirpath, dirnames, filenames in os.walk(images_dir):
+                dirnames.sort()
+                rawexifs = subprocess.check_output(["exiftool", "-j", "-q", os.path.join(images_dir, dirpath)])
+                if len(rawexifs) <= 0:
+                    continue
+                exifs = json.loads(rawexifs)
+                for exif in exifs:
+                    if "RegionName" not in exif:
+                        continue
+                    logging.info("faces found in %s" % exif["SourceFile"])
+                    for key, value in exif.items():
+                        if key.startswith("Region"):
+                            logging.info("%s: %s" % (key, value))
+
+
+if __name__ == "__main__":
+    import sys
+    na = NewAnalyzer(sys.argv[1], sys.argv[2], sys.argv[3])
+    na.main()
