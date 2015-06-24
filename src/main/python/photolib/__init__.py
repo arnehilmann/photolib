@@ -1,7 +1,9 @@
 PHOTO_SUFFICES = [".jpg", ".jpeg", ".png", ".gif", ".cr2"]
 TILES_SUFFICES = [".jpg", ".jpeg", ".png", ".gif"]
-TILES_PATTERNS = ["*" + s for s in TILES_SUFFICES]
 IGNORED_SUFFICES = [".ini", ".db", ".info"]
+
+TILES_PATTERNS = ["*" + s for s in TILES_SUFFICES]
+PHOTO_PATTERNS = ["*" + s for s in PHOTO_SUFFICES]
 
 import time
 import logging.config
@@ -52,3 +54,7 @@ def match_any(filename, patterns):
 
 def match_any_tiles_suffices(filename):
     return match_any(filename.lower(), TILES_PATTERNS)
+
+
+def is_photo(filename):
+    return match_any(filename.lower(), PHOTO_PATTERNS)
