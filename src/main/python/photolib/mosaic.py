@@ -1,23 +1,13 @@
-import fnmatch
 import os
 import logging
 import shutil
 import subprocess
 import tempfile
 
+from photolib import match_any_tiles_suffices
+
 TILE_SIZE = 240
 TABLES_MXT = "tables.mxt"
-
-
-def match_any(filename, patterns):
-    for pattern in patterns:
-        if fnmatch.fnmatch(filename, pattern):
-            return True
-    return False
-
-
-def match_any_photo_formats(filename):
-    return match_any(filename, ["*.jp*g", "*.JP*G", "*.png", "*.PNG"])
 
 
 class Preparer(object):
@@ -27,7 +17,7 @@ class Preparer(object):
     def main(self):
         for dirpath, dirnames, filenames in os.walk(self.tiles_dir):
             dirnames.sort()
-            filenames = filter(match_any_photo_formats, filenames)
+            filenames = filter(match_any_tiles_suffices, filenames)
             if not filenames:
                 continue
             logging.info("%s: preparing..." % dirpath)
