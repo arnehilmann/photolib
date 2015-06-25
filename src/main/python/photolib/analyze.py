@@ -129,9 +129,39 @@ class NewAnalyzer(object):
                     continue
                 exifs = json.loads(rawexifs)
                 for exif in exifs:
-                    if "RegionName" not in exif:
+                    if "RegionAppliedToDimensionsUnit" not in exif:
                         continue
-                    logging.info("faces found in %s" % exif["SourceFile"])
+                    region_unit = exif["RegionAppliedToDimensionsUnit"]
+                    if region_unit != "pixel":
+                        logging.warn("unknown RegionAppliedToDimensionsUnit '%s'" % region_unit)
+                        continue
+                    width = exif["RegionAppliedToDimensionsW"]
+                    height = exif["RegionAppliedToDimensionsH"]
+
+                    if "RegionType" not in exif:
+                        continue
+                    for index, regiontype in enumerate(exif["RegionType"]):
+                        if regiontype != "Face":
+                            continue
+                        area_unit = exif["RegionAreaUnit"][index]
+                        if area_unit != "normalized":
+                            logging.warn("unknown RegionAreaUnit '%s' found" % area_unit)
+                            continue
+                        name = exif["RegionName"][index]
+                        logging.info("face of '%s' found in %s" % (name, exif["SourceFile"]))
+
+                        nx = exif["RegionAreaX"][index]
+                        ny = exif["RegionAreaY"][index]
+                        nw = exif["RegionAreaW"][index]
+                        nh = exif["RegionAreaH"][index]
+
+                        x0 = int(nx * width)
+                        y0 = int(ny * height)
+                        x1 = int((nx + nw) * width)
+                        y1 = int((ny + nh) * height)
+
+                        logging.info("(%s/%s) - (%s/%s)" % (x0, y0, x1, y1))
+
                     for key, value in exif.items():
                         if key.startswith("Region"):
                             logging.info("%s: %s" % (key, value))
