@@ -60,30 +60,17 @@ render-mosaic --in <INPUT_FILE> --tiles-dir <TILES_LIBRARY> [options]
 - [metapixel](http://www.complang.tuwien.ac.at/schani/metapixel/)
 
 
-## How to install picasa3.9 on ubuntu
+## How to run picasa and its face recognition
 
-**fast-lane, without picasaweb-integration**
+- virtualbox with official windows os
 
-* get and install the last (and old) official picasa version for ubuntu:
+- mount appropriate dirs as additional drives
 
-```google
-https://www.google.com/search?q=%22picasa+3.0%22+download+ubuntu
-```
+- use picasastarter to configure/start picasa
 
-```bash
-sudo dpkg -i Downloads/picasa-3.0*.deb
-```
+- backup your Google-Folder often
 
-* get and copy-over the last official (non-ubuntu) version of picasa
-
-```google
-https://www.google.com/search?q="picasa+3.9"+download
-```
-
-```bash
-wine Downloads/picasa39-setup.exe
-sudo cp -r .wine/drive_c/Program\ Files\ \(x86\)/Google/Picasa3/* /opt/google/picasa/3.0/wine/drive_c/Program\ Files/Google/Picasa3
-```
+- not recommended any longer: [picasa3.9 on ubuntu using wine](picasa_on_ubuntu.md)
 
 
 ## TODO
