@@ -90,12 +90,12 @@ sudo cp -r .wine/drive_c/Program\ Files\ \(x86\)/Google/Picasa3/* /opt/google/pi
 
 - make analyze-photos idempotent
  
-  - check if analysis results already present and uptodate
+  - ~~check if analysis results already present and uptodate~~ done
 
   - let analyze-photos remove photos when face information changed
 
 - add minimal exif data for photos without exif
 
-- integrate better with digikam (sync of metadata)
+- ~~integrate better with digikam (sync of metadata)~~ wont do
 
-- store face data in metadata with bounding box
+- ~~store face data in metadata with bounding box~~ done
