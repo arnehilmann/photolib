@@ -114,11 +114,11 @@ class Analyzer(object):
 
 
 class NewAnalyzer(object):
-    def __init__(self, photos_dirs, faces_dir, tiles_dir, tiles_size=240):
-        self.photos_dirs = [photos_dirs]
+    def __init__(self, photos_dir, faces_dir, tiles_dir, tile_size=240):
+        self.photos_dirs = photos_dir
         self.faces_dir = faces_dir
-        self.tiles_dir = os.path.join(tiles_dir, tiles_size)
-        self.tiles_size = tiles_size
+        self.tiles_dir = os.path.join(tiles_dir, tile_size)
+        self.tile_size = tile_size
 
     def main(self):
         for images_dir in self.photos_dirs:
@@ -155,7 +155,10 @@ class NewAnalyzer(object):
                 continue
             name = exif["RegionName"][index]
 
-            self.create_tile(filename, name, "photos")
+            year = None
+            if re.match("20..-..-..T", basename):
+                year = basename[0:4]
+            self.create_tile(filename, "photos", name, year)
 
             nx = exif["RegionAreaX"][index]
             ny = exif["RegionAreaY"][index]
@@ -166,16 +169,15 @@ class NewAnalyzer(object):
             top = int((ny - nh / 2) * height)
             right = int((nx + nw / 2) * width)
             bottom = int((ny + nh / 2) * height)
-
-            # coords = (left, bottom, right, top)
             coords = (left, top, right, bottom)
 
-            face_filename = self.create_face_image(filename, name, coords)
-            self.create_tile(face_filename, name, "faces")
+            face_filename = self.create_face_image(filename, coords, name, year)
+            self.create_tile(face_filename, "faces", name, year)
         self.dump_exif(exif)
 
-    def create_face_image(self, source_filename, name, coords):
-        target_dir = os.path.join(self.faces_dir, name)
+    def create_face_image(self, source_filename, coords, name, year):
+        year = year if year else ""
+        target_dir = os.path.join(self.faces_dir, name, year)
         if not os.path.exists(target_dir):
             os.makedirs(target_dir)
 
@@ -185,26 +187,16 @@ class NewAnalyzer(object):
             logging.debug("%s: face image for %s already exists, skipping" % (target_filename, name))
             return target_filename
         logging.info("face of '%s' found in %s, at %s" % (name, basename, "%s/%s %s/%s" % coords))
-
-        # cmd = ["convert", source_filename,
-        #        "-fill", "none",
-        #        "-stroke", "yellow",
-        #        "-strokewidth", "20",
-        #        "-draw", "arc %i,%i %i,%i 0,360" % coords,
-        #        target_filename]
-
-        # crop_string = "%ix%i+%i+%i" % (right - left, bottom - top, left, top)
         crop_string = "%ix%i+%i+%i" % (coords[2] - coords[0], coords[3] - coords[1], coords[0], coords[1])
         cmd = ["convert", source_filename, "-crop", crop_string, "+repage", target_filename]
-        logging.info(" ".join(cmd))
         exit_code = subprocess.check_call(cmd)
         logging.debug("exit code: %i" % exit_code)
         return target_filename
 
-    def create_tile(self, source_filename, name, subfolder):
-        suffix = ".png"
+    def create_tile(self, source_filename, subfolder, name, year):
+        year = year if year else ""
         basename, suffix = os.path.splitext(os.path.basename(source_filename))
-        target_dir = os.path.join(self.tiles_dir, subfolder, name)
+        target_dir = os.path.join(self.tiles_dir, subfolder, name, year)
         target_filename = os.path.join(target_dir, basename + suffix)
         if not os.path.exists(target_dir):
             os.makedirs(target_dir)
@@ -213,9 +205,9 @@ class NewAnalyzer(object):
             return target_filename
         logging.info("%s: creating tile for %s" % (target_filename, name))
         exit_code = subprocess.check_call(["convert", source_filename,
-                                           "-resize", "%sx%s^" % (self.tiles_size, self.tiles_size),
+                                           "-resize", "%sx%s^" % (self.tile_size, self.tile_size),
                                            "-gravity", "Center",
-                                           "-crop", "%sx%s+0+0!" % (self.tiles_size, self.tiles_size),
+                                           "-crop", "%sx%s+0+0!" % (self.tile_size, self.tile_size),
                                            target_filename])
         logging.debug("exit code: %i" % exit_code)
         return target_filename
@@ -225,19 +217,3 @@ class NewAnalyzer(object):
         for key, value in exif.items():
             if key.startswith("Region"):
                 logging.debug("exif  %s: %s" % (key, value))
-
-
-if __name__ == "__main__":
-    from docopt import docopt
-    arguments = docopt("""
-    Usage:
-        analyze PHOTOS_DIR FACES_DIR TILES_DIR [--tiles-size=INT]
-
-    Options:
-        --tiles-size=INT  size of a tile [default: 240]
-            """)
-    na = NewAnalyzer(arguments["PHOTOS_DIR"],
-                     arguments["FACES_DIR"],
-                     arguments["TILES_DIR"],
-                     arguments["--tiles-size"])
-    na.main()
