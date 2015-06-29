@@ -7,10 +7,9 @@ from docopt import docopt
 from photolib.analyze import Analyzer
 
 arguments = docopt(__doc__)
-print arguments
 
 ps = Analyzer(photos_dirs=arguments["--photos-dir"],
-        faces_dir=arguments["--faces-dir"],
-        tiles_dir=arguments["--tiles-dir"],
-        picasa_contacts_file=arguments["--picasa-contacts-file"])
+              faces_dir=arguments["--faces-dir"],
+              tiles_dir=arguments["--tiles-dir"],
+              picasa_contacts_file=arguments["--picasa-contacts-file"])
 sys.exit(ps.main())
