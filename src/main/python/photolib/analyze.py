@@ -117,7 +117,7 @@ class NewAnalyzer(object):
     def __init__(self, photos_dirs, faces_dir, tiles_dir, tiles_size=240):
         self.photos_dirs = [photos_dirs]
         self.faces_dir = faces_dir
-        self.tiles_dir = tiles_dir
+        self.tiles_dir = os.path.join(tiles_dir, tiles_size)
         self.tiles_size = tiles_size
 
     def main(self):
@@ -220,7 +220,6 @@ class NewAnalyzer(object):
         logging.debug("exit code: %i" % exit_code)
         return target_filename
 
-
     @staticmethod
     def dump_exif(exif):
         for key, value in exif.items():
@@ -229,6 +228,16 @@ class NewAnalyzer(object):
 
 
 if __name__ == "__main__":
-    import sys
-    na = NewAnalyzer(sys.argv[1], sys.argv[2], sys.argv[3])
+    from docopt import docopt
+    arguments = docopt("""
+    Usage:
+        analyze PHOTOS_DIR FACES_DIR TILES_DIR [--tiles-size=INT]
+
+    Options:
+        --tiles-size=INT  size of a tile [default: 240]
+            """)
+    na = NewAnalyzer(arguments["PHOTOS_DIR"],
+                     arguments["FACES_DIR"],
+                     arguments["TILES_DIR"],
+                     arguments["--tiles-size"])
     na.main()
