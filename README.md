@@ -24,7 +24,7 @@ git clone https://github.com/arnehilmann/photolib.git
 
 cd photolib
 
-bootstrap/ubuntu.sh
+bootstrap/ubuntu
 ```
 
 ### usage
@@ -36,11 +36,9 @@ transfer-photos --source-dir <BUNCH_OF_NEW_PHOTOS> --photos-dir <MY_PHOTO_LIBRAR
 
 # picasa face detection in MY_PHOTO_LIBRARY happens here
 
-analyze-photos --photos-dir <MY_PHOTO_LIBRARY> --faces-dir <FACES_LIBRARY> --tiles-dir <TILES_LIBRARY>
+analyze-photos --photos-dir <MY_PHOTO_LIBRARY>... --faces-dir <FACES_LIBRARY> --tiles-dir <TILES_LIBRARY>
 
-prepare-mosaic --tiles-dir <TILES_LIBRARY>
-
-render-mosaic --in <INPUT_FILE> --tiles-dir <TILES_LIBRARY>
+render-mosaic --in <INPUT_FILE> --tiles-dir <TILES_LIBRARY> [options]
 
 # deprecated: generate-gallery <NAME_OF_GALLERY> <PHOTOS...>
 # consider using https://github.com/arnehilmann/gallery-generator instead
