@@ -156,7 +156,7 @@ class NewAnalyzer(object):
             name = exif["RegionName"][index]
 
             year = None
-            if re.match("20..-..-..T", basename):
+            if re.match("20..-..-..T", basename) or re.match("20......-", basename):
                 year = basename[0:4]
             self.create_tile(filename, "photos", name, year)
 
