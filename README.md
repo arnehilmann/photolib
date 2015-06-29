@@ -99,3 +99,6 @@ sudo cp -r .wine/drive_c/Program\ Files\ \(x86\)/Google/Picasa3/* /opt/google/pi
 - ~~integrate better with digikam (sync of metadata)~~ wont do
 
 - ~~store face data in metadata with bounding box~~ done
+
+- set mtime of photos to its exif timestamp 
+
