@@ -1,4 +1,4 @@
-sudo: False
+sudo: required
 language: python
 python:
   - 2.7
