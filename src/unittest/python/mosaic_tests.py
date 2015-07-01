@@ -1,12 +1,15 @@
 import unittest
 from mock import patch, mock_open
 
+import logging
+
 import photolib.mosaic as mosaic
 
 
 class MosaicTest(unittest.TestCase):
 
     def test_preparer(self):
+        logging.disable(logging.WARN)
         p = mosaic.Preparer("src/resources/tiles")
 
         m = mock_open()
