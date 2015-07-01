@@ -3,6 +3,7 @@ language: python
 python:
   - 2.7
 install:
+  - apt-get install exiftool
   - pip install pybuilder
   - pip install coveralls
   - pyb install_dependencies
