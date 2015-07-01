@@ -1,5 +1,8 @@
 # photolib
 
+[![Build Status](https://api.travis-ci.org/arnehilmann/photolib.svg?branch=master)](https://travis-ci.org/arnehilmann/photolib)
+
+
 manage your photo archive
 
 - import new photos, generate date-based hierarchy
