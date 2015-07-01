@@ -201,6 +201,8 @@ class PhotoImporter(object):
                     self.counter.inc("files skipped due to missing date", "dir")
 
     def _add_exif_data(self, path):
+        if not os.path.exists(path):
+            return
         if self.exifdata:
             call(["/usr/bin/exiftool"] + self.exifdata + ["-overwrite_original_in_place", path], logger=logging)
 
