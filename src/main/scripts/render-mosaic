@@ -16,13 +16,18 @@ Options:
     --outdir=DIR        where to store the mosaics [default: .]
     --tiles-dir=DIR     where to find the tiles [default: .]
 """
-#import glob
+import glob
 import logging
 import os
 import subprocess
 import sys
 import time
 from docopt import docopt
+
+from photolib import init_logging
+
+
+init_logging()
 
 TILES_SIZE = 240
 
@@ -38,24 +43,26 @@ libs = set()
 td_arguments = arguments["TILES_DIRS"]
 while td_arguments:
     tiles_dir = td_arguments.pop(0)
-    print tiles_dir
     if tiles_dir.startswith("@"):
-        logging.info("sourcing arguments from %s" % tiles_dir)
+        logging.debug("sourcing arguments from %s" % tiles_dir)
         with open(tiles_dir[1:]) as tiles_dirs:
             td_arguments = tiles_dirs.read().splitlines() + td_arguments
         continue
     if tiles_dir.startswith("~"):
         tiles_dir = tiles_dir[1:]
-        logging.info("removing %s from arguments" % tiles_dir)
+        logging.debug("removing %s from arguments" % tiles_dir)
         libs.remove(os.path.join(root_dir, tiles_dir))
         continue
-    import glob
+
     globbed = glob.glob(os.path.join(root_dir, tiles_dir))
     if len(globbed) > 1:
         globbed = [g.replace(root_dir + "/", "") for g in globbed]
         td_arguments = globbed + td_arguments
         continue
-    print "adding %s recursivly" % os.path.join(root_dir, tiles_dir)
+    if tiles_dir.startswith("#"):
+        continue
+
+    logging.debug("adding %s recursivly" % os.path.join(root_dir, tiles_dir))
     for root, dirs, files in os.walk(os.path.join(root_dir, tiles_dir)):
         if "tables.mxt" not in files:
             continue
@@ -75,27 +82,28 @@ for input in arguments["--in"]:
     width, height = size.split()
     for nr_x in nr_xs:
         nr_x = int(nr_x)
-        print "nr x: %i" % nr_x
         scale = 1.0 * int(nr_x) * TILES_SIZE / int(width)
 
         input_basename = os.path.splitext(os.path.basename(input))[0]
 
         for cheat in cheats:
             cheat = int(cheat)
-            print cheat
-            output = os.path.join(outdir, "%s/%s.%02i.%02i.jpg" % (time.strftime("%Y-%m-%d"), input_basename, nr_x, cheat))
+            output = os.path.join(outdir,
+                                  "%s/%s.%02i.%02i.jpg" % (time.strftime("%Y-%m-%d"),
+                                                           input_basename,
+                                                           nr_x,
+                                                           cheat))
 
             out_dir = os.path.dirname(output)
             if out_dir and not os.path.exists(out_dir):
                 os.makedirs(out_dir)
 
             cmd = ["metapixel", "--cheat=%s" % cheat, "--scale=%s" % scale,
-                    "--width=%s" % TILES_SIZE, "--height=%s" % TILES_SIZE,
-                    "--distance=%s" % distance, "--metric=subpixel"]
+                   "--width=%s" % TILES_SIZE, "--height=%s" % TILES_SIZE,
+                   "--distance=%s" % distance, "--metric=subpixel"]
             cmd.extend(libs)
             cmd.extend(["--metapixel", input, output])
             logging.info("generating %s" % output)
-            print "generating %s" % output
             logging.debug(cmd)
             process = subprocess.Popen(cmd)
             process.output = output
@@ -113,7 +121,7 @@ while still_running > 0:
 
 exit_codes = []
 for process in processes:
-    print "%s: exit %i" % (process.output, process.returncode)
+    logging.info("%s: exit %i" % (process.output, process.returncode))
     exit_codes.append(process.returncode)
 
 sys.exit(max(exit_codes))
