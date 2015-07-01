@@ -1,5 +1,5 @@
 import unittest
-from mock import MagicMock
+from mock import MagicMock, patch
 
 import os
 from datetime import datetime
@@ -43,9 +43,21 @@ class PhotoImporterTest(unittest.TestCase):
         self.assertEqual(self.pi._get_exiftool_fmt_file(), "/res/createdate.fmt")
         photolib.transfer.__file__ = orig_file
 
-    def test_main(self):
+    def test_main_without_input(self):
         logging.disable(logging.WARN)
+        self.pi.counter.inc("test")
         self.pi.main()
+
+    @patch("os.chmod")
+    @patch("shutil.move")
+    @patch("shutil.copy")
+    @patch("os.makedirs")
+    def test_import_dir(self, *mocks):
+        logging.disable(logging.WARN)
+        self.pi.actual_sourcedir = "src/resources/testsamples/2999/04/04"
+        self.pi.import_dir(".", ["this_file.ignored.info"])
+        self.pi.import_dir("src/resources/testsamples/2999/04/04", ["this_file.ignored.info",
+                                                                    "20150621Allium_ursinum1.jpg"])
 
 
 if __name__ == "__main__":
