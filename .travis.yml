@@ -1,0 +1,11 @@
+sudo: False
+language: python
+python:
+  - 2.7
+install:
+  - pip install pybuilder
+  - pip install coveralls
+  - pyb install_dependencies
+script: "pyb -X"
+after_success:
+  - coveralls --verbose
