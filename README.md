@@ -22,7 +22,7 @@ prepare for huge photo mosaics, searchable photo archive, and offline face-recog
 
     - generate closeup of detected faces
 
-- render mosaics using [metapixel](http://www.complang.tuwien.ac.at/schani/metapixel/)
+- render mosaics using [metapixel](http://www.complang.tuwien.ac.at/schani/metapixel/)<br/>
   [![example mosaic](res/Marilyn_Monroe,_Korea,_1954_cropped.30.20.scaled2.jpg)](res/Marilyn_Monroe,_Korea,_1954_cropped.30.20.scaled.jpg)
 
 
