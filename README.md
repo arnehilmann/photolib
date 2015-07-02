@@ -4,9 +4,17 @@
 [![Coverage Status](https://coveralls.io/repos/arnehilmann/photolib/badge.svg)](https://coveralls.io/r/arnehilmann/photolib)
 
 
-manage your photo archive
+prepare for huge photo mosaics, searchable photo archive, and offline face-recognition
 
 - import new photos, generate date-based hierarchy
+```
+...DCIM/101CANON/IMG_1234.JPG
+    vvvv [transfer] vvvv
+2015/
+ +-- 2015-06/
+      +-- 2015-06-29/
+           +-- 2015-06-29T13-42.1234.JPG
+```
 
 - analyze photos and metainformation (faces detected by [picasa](http://picasa.google.com/))
 
@@ -14,7 +22,7 @@ manage your photo archive
 
     - generate closeup of detected faces
 
-- render mosaic using [metapixel](http://www.complang.tuwien.ac.at/schani/metapixel/)
+- render mosaics using [metapixel](http://www.complang.tuwien.ac.at/schani/metapixel/)
 
 
 ## tl;dr
@@ -43,9 +51,6 @@ transfer-photos --source-dir <BUNCH_OF_NEW_PHOTOS> --photos-dir <MY_PHOTO_LIBRAR
 analyze-photos --photos-dir <MY_PHOTO_LIBRARY>... --faces-dir <FACES_LIBRARY> --tiles-dir <TILES_LIBRARY>
 
 render-mosaic --in <INPUT_FILE> --tiles-dir <TILES_LIBRARY> [options]
-
-# deprecated: generate-gallery <NAME_OF_GALLERY> <PHOTOS...>
-# consider using https://github.com/arnehilmann/gallery-generator instead
 ```
 
 
@@ -66,30 +71,24 @@ render-mosaic --in <INPUT_FILE> --tiles-dir <TILES_LIBRARY> [options]
 
 ## How to run picasa and its face recognition
 
-- virtualbox with official windows os
+- [virtualbox](https://www.virtualbox.org/) with official [windows os](http://dev.modern.ie/tools/vms/)
 
 - mount appropriate dirs as additional drives
 
-- use picasastarter to configure/start picasa
+- use [picasastarter](https://sites.google.com/site/picasastartersite/) to configure/start picasa
 
 - backup your Google-Folder often
 
-- not recommended any longer: [picasa3.9 on ubuntu using wine](picasa_on_ubuntu.md)
+- ~~not recommended any longer: [picasa3.9 on ubuntu using wine](picasa_on_ubuntu.md)~~
 
 
 ## TODO
 
 - make analyze-photos idempotent
  
-  - ~~check if analysis results already present and uptodate~~ done
-
   - let analyze-photos remove photos when face information changed
 
 - add minimal exif data for photos without exif
-
-- ~~integrate better with digikam (sync of metadata)~~ wont do
-
-- ~~store face data in metadata with bounding box~~ done
 
 - set mtime of photos to its exif timestamp 
 
