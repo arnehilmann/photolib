@@ -73,9 +73,11 @@ render-mosaic --in <INPUT_FILE> --tiles-dir <TILES_LIBRARY> [options]
 
 - [virtualbox](https://www.virtualbox.org/) with official [windows os](http://dev.modern.ie/tools/vms/)
 
-- mount appropriate dirs as additional drives
+- mount your photos dir as additional drive in your vm
 
-- use [picasastarter](https://sites.google.com/site/picasastartersite/) to configure/start picasa
+- install both [picasa](http://picasa.google.com/) and [picasastarter](https://sites.google.com/site/picasastartersite/)
+
+- use picasastarter to configure/start picasa
 
 - backup your Google-Folder often
 
