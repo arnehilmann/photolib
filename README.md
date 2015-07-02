@@ -1,6 +1,7 @@
 # photolib
 
 [![Build Status](https://api.travis-ci.org/arnehilmann/photolib.svg?branch=master)](https://travis-ci.org/arnehilmann/photolib)
+[![Coverage Status](https://coveralls.io/repos/arnehilmann/photolib/badge.svg)](https://coveralls.io/r/arnehilmann/photolib)
 
 
 manage your photo archive
