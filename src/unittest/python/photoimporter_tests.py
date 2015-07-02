@@ -52,9 +52,12 @@ class PhotoImporterTest(unittest.TestCase):
     @patch("shutil.move")
     @patch("shutil.copy")
     @patch("os.makedirs")
-    def test_import_dir(self, *mocks):
+    @patch.object(PhotoImporter, "calc_new_filenames")
+    def test_import_dir(self, calc_new_filenames_mock, *other_mocks):
         logging.disable(logging.WARN)
         self.pi.actual_sourcedir = "src/resources/testsamples/2999/04/04"
+        calc_new_filenames_mock.return_value = "foo|bar\nbraz|"
+
         self.pi.import_dir(".", ["this_file.ignored.info"])
         self.pi.import_dir("src/resources/testsamples/2999/04/04", ["this_file.ignored.info",
                                                                     "20150621Allium_ursinum1.jpg"])

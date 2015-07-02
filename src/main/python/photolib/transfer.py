@@ -54,10 +54,10 @@ class PhotoImporter(object):
         try:
             self._import()
             return_code = 0
-        except KeyboardInterrupt:
+        except KeyboardInterrupt:  # pragma: no cover
             logging.warning("import aborted by user interaction")
             return_code = 127
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             logging.exception(e)
             logging.critical("aborting due to previous errors")
             return_code = 1
@@ -118,6 +118,15 @@ class PhotoImporter(object):
 
         return None
 
+    def calc_new_filenames(self, dirpath):
+        with open(os.devnull, "w") as devnull:
+            return subprocess.check_output(
+                ["exiftool",
+                    "-q", "-p", self._get_exiftool_fmt_file(),
+                    "-m", "-d", FORMAT_NEW_PATH, dirpath],
+                stderr=devnull
+            )
+
     def import_dir(self, dirpath, filenames=None):
         short_dirpath = os.path.basename(dirpath)
         if short_dirpath.startswith("."):
@@ -126,13 +135,7 @@ class PhotoImporter(object):
             return
         logging.info("%s: scanning..." % self.format_dirpath(dirpath))
         self.counter.inc("directories scanned")
-        with open(os.devnull, "w") as devnull:
-            create_dates = subprocess.check_output(
-                ["exiftool",
-                    "-q", "-p", self._get_exiftool_fmt_file(),
-                    "-m", "-d", FORMAT_NEW_PATH, dirpath],
-                stderr=devnull
-            )
+        create_dates = self.calc_new_filenames(dirpath)
         old2new_pathes = {}
         for line in create_dates.splitlines():
             try:
