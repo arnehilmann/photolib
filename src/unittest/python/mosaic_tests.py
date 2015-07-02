@@ -3,12 +3,14 @@ from mock import patch, mock_open
 
 import logging
 
+from photolib import init_logging
 import photolib.mosaic as mosaic
 
 
 class MosaicTest(unittest.TestCase):
 
     def test_preparer(self):
+        init_logging()
         logging.disable(logging.WARN)
         p = mosaic.Preparer("src/resources/tiles")
 
