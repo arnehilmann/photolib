@@ -133,11 +133,13 @@ class NewAnalyzer(object):
                     self.analyze_exif(exif)
 
     def analyze_exif(self, exif):
-        if "RegionAppliedToDimensionsUnit" not in exif:
-            return
         filename = exif["SourceFile"]
+        logging.info("analyzing '%s'" % filename)
         basename = os.path.basename(filename)
-        region_unit = exif["RegionAppliedToDimensionsUnit"]
+        region_unit = exif.get("RegionAppliedToDimensionsUnit")
+
+        if not region_unit:
+            return
         if region_unit != "pixel":
             logging.warn("unknown RegionAppliedToDimensionsUnit '%s' found in %s" % (region_unit, basename))
             return

@@ -7,9 +7,9 @@ import subprocess
 import time
 
 from photolib.logging_subprocess import call
-from photolib import PHOTO_SUFFICES, IGNORED_SUFFICES
+from photolib import PHOTO_SUFFICES, HANDLED_SUFFICES, IGNORED_SUFFICES, map_model
 
-FORMAT_NEW_PATH = "%Y/%Y-%m/%Y-%m-%d/%Y-%m-%dT%H:%M"
+FORMAT_NEW_PATH = "%Y/%Y-%m/%Y-%m-%d/%Y-%m-%dT%H-%M-%S"
 NEW_PATH_DATE_FORMAT = "%Y/%Y-%m/%Y-%m-%d"
 
 
@@ -138,8 +138,12 @@ class PhotoImporter(object):
         create_dates = self.calc_new_filenames(dirpath)
         old2new_pathes = {}
         for line in create_dates.splitlines():
+            file_index = ""
+            model = ""
+            number = ""
             try:
-                filename, new_filename = line.split("|")
+                logging.info(line)
+                filename, new_filename, file_index, model = line.split("|")
                 if not new_filename:
                     logging.debug("%s: no exif date found" % filename)
                     new_filename = self.handle_file_without_exif_date(dirpath, filename)
@@ -158,19 +162,30 @@ class PhotoImporter(object):
                 logging.exception(e)
                 self.counter.inc("files with exif format problem", "dir")
                 continue
+
             path = os.path.join(dirpath, filename)
             name, suffix = os.path.splitext(filename)
             suffix = suffix.lower()
-            number = ""
-            if suffix in PHOTO_SUFFICES:
-                number = re.sub(".*\.", "", name)
-                number = re.sub(".*_", "", number)
-                # number = re.sub("\D*", "", number)
+            if suffix in HANDLED_SUFFICES:
+                if file_index:
+                    number = re.sub(".*-", "", file_index)
+                else:
+                    number = name
+                    number = re.sub("[-0-9]*T[-0-9]*", "", number)
+                    number = re.sub(".*\.", "", number)
+                    number = re.sub(".*_", "", number)
             if self.number_prefix:
                 number = "%s-%s" % (self.number_prefix, number)
+
             if number:
                 number = ".%s" % number
-            new_path = os.path.join(self.photos_dir, "%s%s%s" % (new_filename, number, suffix))
+            else:
+                number = ".0"
+            model = map_model(model)
+            if model:
+                model = "." + model
+            new_path = os.path.join(self.photos_dir, "".join((new_filename, number, model, suffix)))
+            logging.info(new_path)
             old2new_pathes[path] = new_path
         self.counter.inc("files to check", amount=len(old2new_pathes))
         logging.info("%s: %i photos found" % (self.format_dirpath(dirpath), len(old2new_pathes)))

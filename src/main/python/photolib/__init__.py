@@ -1,4 +1,6 @@
 PHOTO_SUFFICES = [".jpg", ".jpeg", ".png", ".gif", ".cr2"]
+MOVIE_SUFFICES = [".mov", ".mp4"]
+HANDLED_SUFFICES = PHOTO_SUFFICES + MOVIE_SUFFICES
 TILES_SUFFICES = [".jpg", ".jpeg", ".png", ".gif"]
 IGNORED_SUFFICES = [".ini", ".db", ".info"]
 
@@ -45,6 +47,14 @@ def init_logging():
             }
         }
     )
+
+
+def map_model(modelname):
+    modelname = modelname.lower()
+    for substring, replacement in {"6d": "6d", "20d": "20d", "430": "430", "lg": "lg", "desire hd": "dhd"}.items():
+        if substring in modelname:
+            return replacement
+    return modelname
 
 
 def match_any(filename, patterns):
