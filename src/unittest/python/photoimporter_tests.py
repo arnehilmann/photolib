@@ -49,7 +49,7 @@ class PhotoImporterTest(unittest.TestCase):
     def test_import_dir(self, calc_new_filenames_mock, *other_mocks):
         logging.disable(logging.WARN)
         self.pi.actual_sourcedir = "src/resources/testsamples/2999/04/04"
-        calc_new_filenames_mock.return_value = "foo|bar\nbraz|"
+        calc_new_filenames_mock.return_value = "foo|bar|42|canon\nbraz||||"
 
         self.pi.import_dir(".", ["this_file.ignored.info"])
         self.pi.import_dir("src/resources/testsamples/2999/04/04", ["this_file.ignored.info",
