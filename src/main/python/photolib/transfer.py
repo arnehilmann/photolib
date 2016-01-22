@@ -171,8 +171,9 @@ class PhotoImporter(object):
                     number = re.sub(".*-", "", file_index)
                 else:
                     number = name
-                    number = re.sub("[-0-9]*T[-0-9]*", "", number)
-                    number = re.sub(".*\.", "", number)
+                    number = re.sub("[-0-9]*T[-0-9]*\.?", "", number)
+                    # number = re.sub(".*\.", "", number)
+                    number = re.sub("\..*", "", number)
                     number = re.sub(".*_", "", number)
             if self.number_prefix:
                 number = "%s-%s" % (self.number_prefix, number)
@@ -218,11 +219,13 @@ class PhotoImporter(object):
                     logging.warn("cannot import %s" % os.path.join(dirpath, filename))
                     self.counter.inc("files skipped due to missing date", "dir")
 
-    def _add_exif_data(self, path):
+    def _add_exif_data(self, path, data=None):
         if not os.path.exists(path):
             return
-        if self.exifdata:
-            call(["/usr/bin/exiftool"] + self.exifdata + ["-overwrite_original_in_place", path], logger=logging)
+        data = data if data else self.exifdata
+        if data:
+            print " ".join(["/usr/bin/exiftool"] + data + ["-overwrite_original_in_place", path])
+            call(["/usr/local/bin/exiftool"] + data + ["-overwrite_original_in_place", path], logger=logging)
 
     def _import_photo(self, old_path, new_path):
         logging.debug("file %s: importing as %s" % (old_path, new_path))
