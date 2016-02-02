@@ -1,0 +1,6 @@
+#!/bin/bash
+set -e -E -u
+
+for SOURCEDIR in $*; do
+    find "$SOURCEDIR" -name "*.jpg" -exec jhead -ft {} \;
+done

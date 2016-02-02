@@ -1,0 +1,24 @@
+#!/bin/bash
+set -e -E -u -C -o pipefail
+
+EXIFDATA=exifdata.json
+
+for SOURCEDIR in $*; do
+    SOURCEDIR=$(readlink -e $SOURCEDIR)
+    for DIR in $(find $SOURCEDIR -type d | sort); do
+        cd $DIR
+        echo "checking exif data in $PWD"
+        if [[ -e $EXIFDATA ]]; then
+            UPDATE_NEEDED=$(find -maxdepth 1 -newer $EXIFDATA -and -type f)
+        else
+            UPDATE_NEEDED="yes"
+        fi
+        if [[ -n $UPDATE_NEEDED ]]; then
+            echo ".   generating exif data"
+            rm -f $EXIFDATA
+            exiftool -j -g -sort -u -q . > $EXIFDATA || :
+        fi
+        cd $SOURCEDIR
+    done
+done
+echo "done."

@@ -1,0 +1,59 @@
+#!/usr/bin/env python
+import json
+import os
+import subprocess
+import sys
+import time
+
+from geopy.geocoders import Nominatim
+from geopy.point import Point
+
+
+def store_shot_location(filename, shot_location):
+    os.chmod(filename, 0O644)
+    subprocess.call(["exiftool", "-m", "-ShotLocation=%s" % shot_location, "-overwrite_original_in_place", filename])
+    os.chmod(filename, 0O444)
+
+
+running = True
+while running:
+    geolocator = Nominatim()
+    try:
+        for sourcedir in sys.argv[1:]:
+            for dirpath, dirnames, filenames in os.walk(sourcedir):
+                if not filenames:
+                    continue
+                dirnames.sort()
+                print os.path.join(dirpath)
+
+                rawexifs = subprocess.check_output(["exiftool", "-j", "-q", os.path.abspath(dirpath)])
+                if not rawexifs:
+                    continue
+                exifs = json.loads(rawexifs)
+
+                for exif in exifs:
+                    filename = exif["SourceFile"]
+                    # print "checking %s" % filename
+                    if "ShotLocation" in exif:
+                        shot_location = exif["ShotLocation"]
+                        if shot_location.startswith('"'):
+                            shot_location = shot_location.strip('"')
+                            print "%s - %s (updating location in photo)" % (filename, shot_location)
+                            store_shot_location(filename, shot_location)
+                        else:
+                            print "%s - %s" % (filename, shot_location)
+                    elif "GPSPosition" in exif:
+                        name, suffix = os.path.splitext(filename)
+                        if suffix.lower() in (".jpg", ".jpeg", ".cr2"):
+                            position = exif["GPSPosition"].replace("deg", "")
+                            p = Point.from_string(position)
+                            shot_location = geolocator.reverse(p)
+                            print "%s - %s (storing location in photo)" % (filename, shot_location)
+                            store_shot_location(filename, shot_location)
+        running = False
+    except Exception as e:
+        print "an exception occured: %s" % e
+        time.sleep(10)
+        print "retrying command now..."
+
+print "done."
