@@ -54,7 +54,7 @@ def map_model(modelname):
     for substring, replacement in {"6d": "6d", "20d": "20d", "430": "430", "lg": "lg", "desire hd": "dhd"}.items():
         if substring in modelname:
             return replacement
-    return modelname
+    return modelname.replace(" ", "")
 
 
 def match_any(filename, patterns):

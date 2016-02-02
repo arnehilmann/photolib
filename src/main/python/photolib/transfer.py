@@ -164,25 +164,27 @@ class PhotoImporter(object):
                 continue
 
             path = os.path.join(dirpath, filename)
+            model = map_model(model)
             name, suffix = os.path.splitext(filename)
             suffix = suffix.lower()
+
             if suffix in HANDLED_SUFFICES:
                 if file_index:
                     number = re.sub(".*-", "", file_index)
                 else:
-                    number = name
-                    number = re.sub("[-0-9]*T[-0-9]*\.?", "", number)
-                    # number = re.sub(".*\.", "", number)
-                    number = re.sub("\..*", "", number)
-                    number = re.sub(".*_", "", number)
+                    if model not in ("dhd", "lg"):
+                        number = name
+                        number = re.sub("[-0-9]*T[-0-9]*\.?", "", number)
+                        # number = re.sub(".*\.", "", number)
+                        number = re.sub("\..*", "", number)
+                        number = re.sub(".*_", "", number)
+
             if self.number_prefix:
                 number = "%s-%s" % (self.number_prefix, number)
-
             if number:
                 number = ".%s" % number
-            else:
-                number = ".0"
-            model = map_model(model)
+            # else:
+                # number = ".0"
             if model:
                 model = "." + model
             new_path = os.path.join(self.photos_dir, "".join((new_filename, number, model, suffix)))
@@ -224,8 +226,7 @@ class PhotoImporter(object):
             return
         data = data if data else self.exifdata
         if data:
-            print " ".join(["/usr/bin/exiftool"] + data + ["-overwrite_original_in_place", path])
-            call(["/usr/local/bin/exiftool"] + data + ["-overwrite_original_in_place", path], logger=logging)
+            call(["exiftool"] + data + ["-overwrite_original_in_place", path], logger=logging)
 
     def _import_photo(self, old_path, new_path):
         logging.debug("file %s: importing as %s" % (old_path, new_path))
@@ -236,10 +237,11 @@ class PhotoImporter(object):
             self.counter.inc("subdirs created", "dir")
         name, suffix = os.path.splitext(old_path)
         if suffix.lower() in PHOTO_SUFFICES:
-            if suffix.lower() in ("jpg", "jpeg"):
+            if "jp" in suffix.lower():
                 tmp_path = "%s.tmp" % new_path
                 shutil.copy(old_path, tmp_path)
-                call(["/usr/bin/jhead", "-q", "-autorot", tmp_path], logger=logging)
+                os.chmod(tmp_path, 0O644)
+                call(["jhead", "-q", "-autorot", tmp_path], logger=logging)
 
                 self._add_exif_data(tmp_path)
 

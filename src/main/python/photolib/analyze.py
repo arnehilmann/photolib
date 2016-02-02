@@ -125,47 +125,60 @@ class NewAnalyzer(object):
             logging.info("scanning %s" % images_dir)
             for dirpath, dirnames, filenames in os.walk(images_dir):
                 dirnames.sort()
-                rawexifs = subprocess.check_output(["exiftool", "-j", "-q", os.path.join(dirpath)])
-                if len(rawexifs) <= 0:
+#                rawexifs = subprocess.check_output(["exiftool", "-j", "-q", os.path.join(dirpath)])
+#                if len(rawexifs) <= 0:
+#                    continue
+#                exifs = json.loads(rawexifs)
+                try:
+                    with open(os.path.join(dirpath, "exifdata.json")) as datafile:
+                        exifs = json.load(datafile)
+                except Exception as e:
+                    print "an exception occured: %s" % e
                     continue
-                exifs = json.loads(rawexifs)
+                # print json.dumps(exifs, indent=4)
                 for exif in exifs:
-                    self.analyze_exif(exif)
+                    self.analyze_exif(dirpath, exif)
 
-    def analyze_exif(self, exif):
-        filename = exif["SourceFile"]
+    def analyze_exif(self, dirpath, exif):
+        filename = os.path.join(dirpath, exif["SourceFile"])
         logging.info("analyzing '%s'" % filename)
         basename = os.path.basename(filename)
-        region_unit = exif.get("RegionAppliedToDimensionsUnit")
+        xmp = exif.get("XMP")
+        if not xmp:
+            return
+        region_unit = xmp.get("RegionAppliedToDimensionsUnit")
 
         if not region_unit:
             return
         if region_unit != "pixel":
             logging.warn("unknown RegionAppliedToDimensionsUnit '%s' found in %s" % (region_unit, basename))
             return
-        width = exif["RegionAppliedToDimensionsW"]
-        height = exif["RegionAppliedToDimensionsH"]
+        width = xmp["RegionAppliedToDimensionsW"]
+        height = xmp["RegionAppliedToDimensionsH"]
 
-        if "RegionType" not in exif:
+        if "RegionType" not in xmp:
             return
-        for index, regiontype in enumerate(exif["RegionType"]):
+        for index, regiontype in enumerate(xmp["RegionType"]):
             if regiontype != "Face":
                 continue
-            area_unit = exif["RegionAreaUnit"][index]
+            if "RegionName" not in xmp:
+                logging.warn("face region found but no name?")
+                continue
+            area_unit = xmp["RegionAreaUnit"][index]
             if area_unit != "normalized":
                 logging.warn("unknown RegionAreaUnit '%s' found in %s" % (area_unit, basename))
                 continue
-            name = exif["RegionName"][index]
+            name = xmp["RegionName"][index]
 
             year = None
             if re.match("20..-..-..T", basename) or re.match("20......-", basename):
                 year = basename[0:4]
             self.create_tile(filename, "photos", name, year)
 
-            nx = exif["RegionAreaX"][index]
-            ny = exif["RegionAreaY"][index]
-            nw = exif["RegionAreaW"][index]
-            nh = exif["RegionAreaH"][index]
+            nx = xmp["RegionAreaX"][index]
+            ny = xmp["RegionAreaY"][index]
+            nw = xmp["RegionAreaW"][index]
+            nh = xmp["RegionAreaH"][index]
 
             left = int((nx - nw / 2) * width)
             top = int((ny - nh / 2) * height)
