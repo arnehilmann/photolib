@@ -35,6 +35,8 @@ class Preparer(object):
                 if filename_mtime > tables_mxt_mtime:
                     uptodate = False
                     break
+            if os.path.getmtime(dirpath) > tables_mxt_mtime:
+                uptodate = False
 
             if uptodate:
                 logging.info("%s: uptodate, skipping..." % dirpath)
