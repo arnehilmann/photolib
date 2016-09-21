@@ -9,26 +9,31 @@ for SOURCEDIR in "$*"; do
     SOURCEDIR=$(readlink -e "$SOURCEDIR")
     find -s "$SOURCEDIR" -type d -print0 | while read -d '' DIR; do
         cd "$DIR"
-        echo "checking exif data in $PWD"
+        # echo "checking exif data in $PWD"
+        echo -n "."
         if [[ -e "$EXIFDATA" ]]; then
             UPDATE_NEEDED=$(find . -maxdepth 1 -newer "$EXIFDATA" -and -type f)
             [[ . -nt "$EXIFDATA" ]] && UPDATE_NEEDED="$UPDATE_NEEDED ."
-            [[ -n $UPDATE_NEEDED ]] && echo ".   updates found: "$UPDATE_NEEDED
+            [[ -n $UPDATE_NEEDED ]] && { echo; echo -n ".   updates found: "$UPDATE_NEEDED; }
         else
             UPDATE_NEEDED="yes"
         fi
         if [[ -n $UPDATE_NEEDED ]]; then
+            echo
             rm -f "$EXIFDATA"
             DATA=$(exiftool -j -g -sort -u -q . || :)
             if [[ -n $DATA ]]; then
-                echo ".   generating exif data"
+                echo ".   generating exif data for $PWD"
                 echo $DATA > "$EXIFDATA"
             else
-                echo ".   no exif data available"
+                echo ".   store empty exif data for $PWD"
+                echo "{}" > "$EXIFDATA"
+                # echo ".   no exif data available"
             fi
         fi
         cd "$SOURCEDIR"
     done
     cd "$TOPDIR"
+    echo
 done
 echo "done."
