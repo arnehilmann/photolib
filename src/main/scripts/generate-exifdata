@@ -3,22 +3,32 @@ set -e -E -u -C -o pipefail
 
 EXIFDATA=exifdata.json
 
-for SOURCEDIR in $*; do
-    SOURCEDIR=$(readlink -e $SOURCEDIR)
-    for DIR in $(find $SOURCEDIR -type d | sort); do
-        cd $DIR
+TOPDIR="$PWD"
+for SOURCEDIR in "$*"; do
+    echo "checking source dir $SOURCEDIR"
+    SOURCEDIR=$(readlink -e "$SOURCEDIR")
+    find -s "$SOURCEDIR" -type d -print0 | while read -d '' DIR; do
+        cd "$DIR"
         echo "checking exif data in $PWD"
-        if [[ -e $EXIFDATA ]]; then
-            UPDATE_NEEDED=$(find -maxdepth 1 -newer $EXIFDATA -and -type f)
+        if [[ -e "$EXIFDATA" ]]; then
+            UPDATE_NEEDED=$(find . -maxdepth 1 -newer "$EXIFDATA" -and -type f)
+            [[ . -nt "$EXIFDATA" ]] && UPDATE_NEEDED="$UPDATE_NEEDED ."
+            [[ -n $UPDATE_NEEDED ]] && echo ".   updates found: "$UPDATE_NEEDED
         else
             UPDATE_NEEDED="yes"
         fi
         if [[ -n $UPDATE_NEEDED ]]; then
-            echo ".   generating exif data"
-            rm -f $EXIFDATA
-            exiftool -j -g -sort -u -q . > $EXIFDATA || :
+            rm -f "$EXIFDATA"
+            DATA=$(exiftool -j -g -sort -u -q . || :)
+            if [[ -n $DATA ]]; then
+                echo ".   generating exif data"
+                echo $DATA > "$EXIFDATA"
+            else
+                echo ".   no exif data available"
+            fi
         fi
-        cd $SOURCEDIR
+        cd "$SOURCEDIR"
     done
+    cd "$TOPDIR"
 done
 echo "done."
