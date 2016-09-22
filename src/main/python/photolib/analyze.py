@@ -1,5 +1,7 @@
+from functools import partial
 import json
 import logging
+from multiprocessing import Pool
 import os
 import re
 import shutil
@@ -177,7 +179,7 @@ def analyze_exif(dirpath, exif, tiles_dir, faces_dir, tile_size):
     return generated_files
 
 
-def analyze(dirpath, data, tiles_dir, faces_dir, panoramas_dir, tile_size):
+def analyze(data, dirpath, tiles_dir, faces_dir, panoramas_dir, tile_size):
     analyze_size(dirpath, data)
     analyze_format(dirpath, data, panoramas_dir)
     generated_files = analyze_exif(dirpath, data, tiles_dir, faces_dir, tile_size)
@@ -191,39 +193,34 @@ class NewAnalyzer(object):
         self.tiles_dir = os.path.join(tiles_dir, tile_size)
         self.tile_size = tile_size
         self.panoramas_dir = panoramas_dir
-        self.generated_files = set()
 
     def main(self):
         pi = ProgressIndicator()
-        generated_files = set()
+        generated_files = []
+        pool = Pool(processes=10)
         for images_dir in self.photos_dirs:
             logging.info("scanning %s" % images_dir)
             for dirpath, dirnames, filenames in os.walk(images_dir):
                 dirnames.sort()
-#                rawexifs = subprocess.check_output(["exiftool", "-j", "-q", os.path.join(dirpath)])
-#                if len(rawexifs) <= 0:
-#                    continue
-#                exifs = json.loads(rawexifs)
                 try:
                     with open(os.path.join(dirpath, "exifdata.json")) as datafile:
                         datas = json.load(datafile)
                 except Exception as e:
                     logging.exception("an exception occured: %s" % e)
                     continue
-                # print json.dumps(exifs, indent=4)
                 pi.progress()
-                # from multiprocessing import Pool
-                # pool = Pool()
-                # results = []
 
-                for data in datas:
-                    newly_generated_files = analyze(dirpath,
-                                                    data,
-                                                    self.tiles_dir,
-                                                    self.faces_dir,
-                                                    self.panoramas_dir,
-                                                    self.tile_size)
-                    generated_files = generated_files | newly_generated_files
+                analyze_dirpath = partial(analyze,
+                                          dirpath=dirpath,
+                                          tiles_dir=self.tiles_dir,
+                                          faces_dir=self.faces_dir,
+                                          panoramas_dir=self.panoramas_dir,
+                                          tile_size=self.tile_size)
+
+                results = pool.map(analyze_dirpath, datas)
+                results = [item for subset in results for item in subset]
+                if results:
+                    generated_files.extend(results)
 
         logging.info("%i generated files" % len(generated_files))
 
