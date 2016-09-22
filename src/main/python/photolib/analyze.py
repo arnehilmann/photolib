@@ -5,6 +5,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 
 from wand.image import Image
 
@@ -121,6 +122,7 @@ class NewAnalyzer(object):
         self.tiles_dir = os.path.join(tiles_dir, tile_size)
         self.tile_size = tile_size
         self.panoramas_dir = panoramas_dir
+        self.generated_files = set()
 
     def main(self):
         for images_dir in self.photos_dirs:
@@ -139,9 +141,13 @@ class NewAnalyzer(object):
                     continue
                 # print json.dumps(exifs, indent=4)
                 for data in datas:
+                    sys.stdout.write(".")
                     self.analyze_size(dirpath, data)
                     self.analyze_format(dirpath, data)
                     self.analyze_exif(dirpath, data)
+                sys.stdout.flush()
+        for generated_file in sort(self.generated_files):
+            logging.info("generated: %s" % generated_file)
 
     def analyze_size(self, dirpath, data):
         filename = os.path.join(dirpath, data["SourceFile"])
@@ -167,7 +173,7 @@ class NewAnalyzer(object):
 
     def analyze_exif(self, dirpath, exif):
         filename = os.path.join(dirpath, exif["SourceFile"])
-        logging.info("analyzing '%s'" % filename)
+        # logging.info("analyzing '%s'" % filename)
         basename = os.path.basename(filename)
 
         xmp = exif.get("XMP")
@@ -186,7 +192,7 @@ class NewAnalyzer(object):
         if "RegionType" not in xmp:
             return
         if "RegionName" not in xmp:
-            logging.warn("region found but no name?")
+            logging.warn("region found but no name in %s" % basename)
             return
 
         region_area_x = xmp["RegionAreaX"]
@@ -226,6 +232,9 @@ class NewAnalyzer(object):
             tile_filename = self.calc_tile_filename(filename, "photos", name, year)
             face_filename = self.calc_face_filename(filename, name, year)
             facetile_filename = self.calc_tile_filename(face_filename, "faces", name, year)
+            self.generated_files.add(tile_filename)
+            self.generated_files.add(face_filename)
+            self.generated_files.add(facetile_filename)
 
             self.create_tile(filename, tile_filename)
 
