@@ -2,6 +2,7 @@ import os
 import logging
 import shutil
 import subprocess
+import sys
 import tempfile
 
 from photolib import match_any_tiles_suffices
@@ -20,7 +21,7 @@ class Preparer(object):
             filenames = filter(match_any_tiles_suffices, filenames)
             if not filenames:
                 continue
-            logging.info("%s: preparing..." % dirpath)
+            # logging.info("%s: preparing..." % dirpath)
             tmpdir = tempfile.mkdtemp()
 
             tables_mxt = os.path.join(dirpath, TABLES_MXT)
@@ -31,15 +32,17 @@ class Preparer(object):
 
             uptodate = True
             for filename in filenames:
+                sys.stdout.write(".")
                 filename_mtime = os.path.getmtime(os.path.join(dirpath, filename))
                 if filename_mtime > tables_mxt_mtime:
                     uptodate = False
                     break
+            sys.stdout.flush()
             if os.path.getmtime(dirpath) > tables_mxt_mtime:
                 uptodate = False
 
             if uptodate:
-                logging.info("%s: uptodate, skipping..." % dirpath)
+                # logging.info("%s: uptodate, skipping..." % dirpath)
                 continue
             logging.info("%s: generating %s" % (dirpath, TABLES_MXT))
 
