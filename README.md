@@ -51,7 +51,11 @@ transfer-photos --source-dir <BUNCH_OF_NEW_PHOTOS> --photos-dir <MY_PHOTO_LIBRAR
 
 # picasa face detection in MY_PHOTO_LIBRARY happens here
 
+generate-exifdata --photos-dir <MY_PHOTO_LIBRARY>
+
 analyze-photos --photos-dir <MY_PHOTO_LIBRARY>... --faces-dir <FACES_LIBRARY> --tiles-dir <TILES_LIBRARY>
+
+prepare-tiles --tiles-dir <TILES_LIBRARY>
 
 render-mosaic --in <INPUT_FILE> --tiles-dir <TILES_LIBRARY> [options]
 ```
@@ -87,13 +91,18 @@ render-mosaic --in <INPUT_FILE> --tiles-dir <TILES_LIBRARY> [options]
 - ~~not recommended any longer: [picasa3.9 on ubuntu using wine](picasa_on_ubuntu.md)~~
 
 
+## How to use metapixel on MacOS
+
+see the separate [HowTo](metapixel-on-macos.md)
+
+
 ## TODO
 
-- make analyze-photos idempotent
- 
-  - let analyze-photos remove photos when face information changed
+- ~~make analyze-photos idempotent~~ done
+
+  - ~~let analyze-photos remove photos when face information changed~~
 
 - add minimal exif data for photos without exif
 
-- set mtime of photos to its exif timestamp 
+- set mtime of photos to its exif timestamp
 
