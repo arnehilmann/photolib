@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 """
 Usage:
-    analyze-photos --photos-dir=DIRS... --faces-dir=DIR --tiles-dir=DIR [--panoramas-dir=DIR] [--picasa-contacts-file=XMLFILE] [--tile-size=INT]
+    analyze-photos --photos-dir=DIRS... --faces-dir=DIR --tiles-dir=DIR [--panoramas-dir=DIR] [--picasa-contacts-file=XMLFILE] [--tile-size=INT] [--cleanup]
 
 Options:
     --tile-size=INT  [default: 240]
 """
 from docopt import docopt
 from photolib.analyze import NewAnalyzer
-from photolib.mosaic import Preparer
 
 arguments = docopt(__doc__)
 
@@ -16,8 +15,6 @@ analyzer = NewAnalyzer(photos_dir=arguments["--photos-dir"],
                        faces_dir=arguments["--faces-dir"],
                        tiles_dir=arguments["--tiles-dir"],
                        panoramas_dir=arguments["--panoramas-dir"],
-                       tile_size=arguments["--tile-size"])
+                       tile_size=arguments["--tile-size"],
+                       cleanup=arguments["--cleanup"])
 analyzer.main()
-
-preparer = Preparer(tiles_dir=arguments["--tiles-dir"])
-preparer.main()

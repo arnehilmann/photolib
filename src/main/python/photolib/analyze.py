@@ -182,12 +182,13 @@ def analyze(data, dirpath, tiles_dir, faces_dir, panoramas_dir, tile_size):
 
 
 class NewAnalyzer(object):
-    def __init__(self, photos_dir, faces_dir, tiles_dir, panoramas_dir=None, tile_size=240):
+    def __init__(self, photos_dir, faces_dir, tiles_dir, panoramas_dir=None, tile_size=240, cleanup=False):
         self.photos_dirs = photos_dir
         self.faces_dir = faces_dir
         self.tiles_dir = os.path.join(tiles_dir, tile_size)
         self.tile_size = tile_size
         self.panoramas_dir = panoramas_dir
+        self.cleanup = cleanup
 
     def main(self):
         pi = ProgressIndicator()
@@ -230,6 +231,9 @@ class NewAnalyzer(object):
                     filepath = os.path.join(dirpath, filename)
                     if filepath not in generated_files:
                         logging.warn("obsolete %s found" % filepath)
+                        if self.cleanup:
+                            os.unlink(filepath)
+                            logging.warn("%s removed" % filepath)
 
     @staticmethod
     def dump_exif(exif):
