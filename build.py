@@ -15,7 +15,7 @@ description = """manage your photo library: transfer, rename, clean exif, rotate
 summary = description
 authors = [Author("Arne Hilmann", "arne.hilmann@gmail.com")]
 url = "https://github.com/arnehilmann/photolib"
-version = "0.1"
+version = "0.2"
 
 default_task = "publish"
 
