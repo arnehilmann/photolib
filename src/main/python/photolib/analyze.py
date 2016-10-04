@@ -18,11 +18,19 @@ def analyze_size(dirpath, data):
         os.unlink(filename)
 
 
+def makedirs(dirpath):
+    if not os.path.exists(dirpath):
+        try:
+            os.makedirs(dirpath)
+        except OSError as e:
+            if e.errno != 17:
+                raise
+
+
 def analyze_format(dirpath, data, panoramas_dir):
     if not panoramas_dir:
         return
-    if not os.path.exists(panoramas_dir):
-        os.makedirs(panoramas_dir)
+    makedirs(panoramas_dir)
     filename = os.path.join(dirpath, data["SourceFile"])
     exif = data.get("EXIF")
     if not exif:
@@ -37,9 +45,7 @@ def analyze_format(dirpath, data, panoramas_dir):
 
 def create_face_image(source_filename, coords, target_filename):
     target_dir = os.path.dirname(target_filename)
-    if not os.path.exists(target_dir):
-        os.makedirs(target_dir)
-
+    makedirs(target_dir)
     basename, suffix = os.path.splitext(os.path.basename(source_filename))
     if os.path.exists(target_filename):
         logging.debug("%s: face image already exists, skipping" % (target_filename))
@@ -55,8 +61,7 @@ def create_face_image(source_filename, coords, target_filename):
 def calc_face_filename(source_filename, name, year, faces_dir):
     year = year if year else ""
     target_dir = os.path.join(faces_dir, name, year)
-    if not os.path.exists(target_dir):
-        os.makedirs(target_dir)
+    makedirs(target_dir)
     basename, suffix = os.path.splitext(os.path.basename(source_filename))
     return os.path.join(target_dir, "%s.face.%s%s" % (basename, name, suffix))
 
@@ -70,8 +75,7 @@ def calc_tile_filename(source_filename, subfolder, name, year, tiles_dir):
 
 def create_tile(source_filename, target_filename, tile_size):
     target_dir = os.path.dirname(target_filename)
-    if not os.path.exists(target_dir):
-        os.makedirs(target_dir)
+    makedirs(target_dir)
     if os.path.exists(target_filename):
         logging.debug("%s: tile already exists, skipping" % (target_filename))
         return target_filename
