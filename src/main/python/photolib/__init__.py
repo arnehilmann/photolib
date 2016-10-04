@@ -7,9 +7,10 @@ IGNORED_SUFFICES = [".ini", ".db", ".info"]
 TILES_PATTERNS = ["*" + s for s in TILES_SUFFICES]
 PHOTO_PATTERNS = ["*" + s for s in PHOTO_SUFFICES]
 
-import time
-import logging.config
 import fnmatch
+import logging.config
+import sys
+import time
 
 
 def init_logging():
@@ -70,6 +71,17 @@ def match_any_tiles_suffices(filename):
 
 def is_photo(filename):
     return match_any(filename.lower(), PHOTO_PATTERNS)
+
+
+class ProgressIndicator(object):
+    def __init__(self):
+        self.count = 0
+        self.symbols = [".", "o", "O", "0", "O", "o", ".", "_"]
+
+    def progress(self):
+        self.count += 1
+        sys.stderr.write("%s\r" % self.symbols[self.count % len(self.symbols)])
+        sys.stderr.flush()
 
 
 init_logging()

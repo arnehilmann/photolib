@@ -8,16 +8,7 @@ import shutil
 import subprocess
 import sys
 
-
-class ProgressIndicator(object):
-    def __init__(self):
-        self.count = 0
-        self.symbols = [".", "o", "O", "0", "O", "o", ".", "_"]
-
-    def progress(self):
-        self.count += 1
-        sys.stderr.write("%s\r" % self.symbols[self.count % len(self.symbols)])
-        sys.stderr.flush()
+from photolib import ProgressIndicator
 
 
 def analyze_size(dirpath, data):

@@ -5,7 +5,7 @@ import subprocess
 import sys
 import tempfile
 
-from photolib import match_any_tiles_suffices
+from photolib import (match_any_tiles_suffices, ProgressIndicator)
 
 TILE_SIZE = 240
 TABLES_MXT = "tables.mxt"
@@ -16,6 +16,7 @@ class Preparer(object):
         self.tiles_dir = tiles_dir
 
     def main(self):
+        pi = ProgressIndicator()
         for dirpath, dirnames, filenames in os.walk(self.tiles_dir):
             dirnames.sort()
             filenames = filter(match_any_tiles_suffices, filenames)
@@ -31,13 +32,12 @@ class Preparer(object):
                 tables_mxt_mtime = 0
 
             uptodate = True
+            pi.progress()
             for filename in filenames:
-                sys.stdout.write(".")
                 filename_mtime = os.path.getmtime(os.path.join(dirpath, filename))
                 if filename_mtime > tables_mxt_mtime:
                     uptodate = False
                     break
-            sys.stdout.flush()
             if os.path.getmtime(dirpath) > tables_mxt_mtime:
                 uptodate = False
 
